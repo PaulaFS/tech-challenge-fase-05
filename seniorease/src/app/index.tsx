@@ -1,26 +1,49 @@
-import { View, Text, Button, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>SeniorEase</Text>
+      <Text style={styles.title}>Olá!</Text>
 
       <Text style={styles.subtitle}>
-        Organizador de atividades para idosos
+        O que você precisa fazer hoje?
       </Text>
 
-      <Button
-        title="Minhas atividades"
+      <Pressable
+        accessibilityRole="button"
+        style={styles.primaryButton}
         onPress={() => router.push("/atividades")}
-      />
+      >
+        <Text style={styles.primaryButtonText}>
+          Ver minhas atividades
+        </Text>
+      </Pressable>
 
-      <View style={{ height: 16 }} />
+      <Pressable
+        accessibilityRole="button"
+        style={styles.secondaryButton}
+        onPress={() => router.push("/atividades/nova")}
+      >
+        <Text style={styles.secondaryButtonText}>
+          Adicionar atividade
+        </Text>
+      </Pressable>
 
-      <Button
-        title="Configurações"
+      <Pressable
+        accessibilityRole="button"
+        style={styles.secondaryButton}
         onPress={() => router.push("/configuracoes")}
-      />
+      >
+        <Text style={styles.secondaryButtonText}>
+          Configurar acessibilidade
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -30,16 +53,46 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
+    gap: 16,
+    backgroundColor: "#F5F7FA",
   },
-
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 12,
+    fontSize: 36,
+    fontWeight: "800",
+    color: "#202020",
   },
-
   subtitle: {
-    fontSize: 18,
-    marginBottom: 32,
+    fontSize: 22,
+    lineHeight: 30,
+    color: "#404040",
+    marginBottom: 16,
+  },
+  primaryButton: {
+    minHeight: 58,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: "#2457C5",
+  },
+  primaryButtonText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  secondaryButton: {
+    minHeight: 58,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    borderWidth: 2,
+    borderRadius: 12,
+    borderColor: "#2457C5",
+    backgroundColor: "#FFFFFF",
+  },
+  secondaryButtonText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2457C5",
   },
 });
