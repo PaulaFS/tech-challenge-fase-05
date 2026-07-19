@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -32,6 +33,8 @@ const categoryLabels: Record<ActivityCategory, string> = {
 };
 
 export default function ActivityDetailsScreen() {
+  const { settings } = useAccessibility();
+
   const params = useLocalSearchParams<{ id: string }>();
 
   const [activity, setActivity] =
@@ -107,6 +110,11 @@ export default function ActivityDetailsScreen() {
   }
 
   function requestDelete() {
+    if (!settings.confirmCriticalActions) {
+      void handleDelete();
+      return;
+    }
+    
     if (!activity || processing) {
       return;
     }

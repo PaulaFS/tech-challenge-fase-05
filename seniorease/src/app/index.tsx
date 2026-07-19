@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import {
   Pressable,
   StyleSheet,
@@ -7,6 +8,12 @@ import {
 } from "react-native";
 
 export default function HomeScreen() {
+  const {
+    settings,
+    fontScale,
+    spacingScale,
+    colors,
+  } = useAccessibility();
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Olá!</Text>
