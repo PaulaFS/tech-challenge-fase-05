@@ -19,18 +19,75 @@ export async function getActivities(): Promise<Activity[]> {
   }
 }
 
+async function saveActivities(
+  activities: Activity[],
+): Promise<void> {
+  await AsyncStorage.setItem(
+    STORAGE_KEYS.activities,
+    JSON.stringify(activities),
+  );
+}
+
+export async function getActivityById(
+  id: string,
+): Promise<Activity | null> {
+  const activities = await getActivities();
+
+  return (
+    activities.find((activity) => activity.id === id) ?? null
+  );
+}
+
 export async function saveActivity(
   activity: Activity,
 ): Promise<void> {
-  const currentActivities = await getActivities();
+  const activities = await getActivities();
 
-  const updatedActivities = [
-    ...currentActivities,
-    activity,
-  ];
+  await saveActivities([...activities, activity]);
+}
 
-  await AsyncStorage.setItem(
-    STORAGE_KEYS.activities,
-    JSON.stringify(updatedActivities),
+export async function updateActivity(
+  updatedActivity: Activity,
+): Promise<void> {
+  const activities = await getActivities();
+
+  const updatedActivities = activities.map((activity) =>
+    activity.id === updatedActivity.id
+      ? updatedActivity
+      : activity,
   );
+
+  await saveActivities(updatedActivities);
+}
+
+export async function completeActivity(
+  id: string,
+): Promise<Activity> {
+  const activity = await getActivityById(id);
+
+  if (!activity) {
+    throw new Error("Atividade não encontrada.");
+  }
+
+  const completedActivity: Activity = {
+    ...activity,
+    status: "concluida",
+    completedAt: new Date().toISOString(),
+  };
+
+  await updateActivity(completedActivity);
+
+  return completedActivity;
+}
+
+export async function deleteActivity(
+  id: string,
+): Promise<void> {
+  const activities = await getActivities();
+
+  const remainingActivities = activities.filter(
+    (activity) => activity.id !== id,
+  );
+
+  await saveActivities(remainingActivities);
 }
