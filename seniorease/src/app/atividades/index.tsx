@@ -121,6 +121,16 @@ export default function ActivitiesScreen() {
             + Nova atividade
           </Text>
         </Pressable>
+
+        <Pressable
+            style={styles.secondaryButton}
+            onPress={() => router.push("/historico")}
+        >
+            <Text style={styles.secondaryButtonText}>
+                Ver histórico
+            </Text>
+        </Pressable>
+
       </View>
 
       {errorMessage ? (
@@ -189,6 +199,8 @@ export default function ActivitiesScreen() {
           />
         ))}
       </View>
+
+      
     </ScrollView>
   );
 }
@@ -451,6 +463,21 @@ const styles = StyleSheet.create({
   openText: {
     marginTop: 2,
     fontSize: 17,
+    fontWeight: "700",
+    color: "#2457C5",
+  },
+  secondaryButton: {
+    minHeight: 58,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    borderWidth: 2,
+    borderRadius: 12,
+    borderColor: "#2457C5",
+    backgroundColor: "#FFFFFF",
+  },
+  secondaryButtonText: {
+    fontSize: 20,
     fontWeight: "700",
     color: "#2457C5",
   },

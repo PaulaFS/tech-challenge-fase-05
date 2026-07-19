@@ -44,6 +44,15 @@ export default function HomeScreen() {
           Configurar acessibilidade
         </Text>
       </Pressable>
+
+      <Pressable
+          style={styles.secondaryButton}
+          onPress={() => router.push("/historico")}
+      >
+          <Text style={styles.secondaryButtonText}>
+              Histórico
+          </Text>
+      </Pressable>
     </View>
   );
 }
