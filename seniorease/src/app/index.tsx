@@ -1,49 +1,94 @@
 import { router } from "expo-router";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View, Animated } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRef, useState } from "react";
+import { 
+  useFonts, 
+  Montserrat_400Regular, 
+  Montserrat_700Bold 
+} from '@expo-google-fonts/montserrat';
+import { useTheme } from "../constants/theme";
+
+const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleHoverIn = () => {
+    setIsHovered(true);
+    Animated.spring(scaleAnim, { toValue: 1.05, useNativeDriver: true }).start();
+  };
+
+  const handleHoverOut = () => {
+    setIsHovered(false);
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
+      <Pressable 
+        
+        onHoverIn={handleHoverIn}
+        
+        onHoverOut={handleHoverOut}
+        onPress={onPress}
+        style={[styles.button, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
+        accessibilityRole="button"
+        accessibilityLabel={text}
+      >
+        <MaterialCommunityIcons name={icon} size={fontSize * 1.5} color={textColor} />
+        <Text style={[styles.buttonText, { fontSize: fontSize, color: textColor }]}>
+          {text}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+};
 
 export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Olá!</Text>
+  const { fontSize, colors } = useTheme();
 
-      <Text style={styles.subtitle}>
+  let [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 2.2 }]}>
+        Seja bem-vindo!
+      </Text>
+      <Text style={[styles.subtitle, { color: colors.text, fontSize: fontSize * 1.2 }]}>
         O que você precisa fazer hoje?
       </Text>
 
-      <Pressable
-        accessibilityRole="button"
-        style={styles.primaryButton}
-        onPress={() => router.push("/atividades")}
-      >
-        <Text style={styles.primaryButtonText}>
-          Ver minhas atividades
-        </Text>
-      </Pressable>
-
-      <Pressable
-        accessibilityRole="button"
-        style={styles.secondaryButton}
-        onPress={() => router.push("/atividades/nova")}
-      >
-        <Text style={styles.secondaryButtonText}>
-          Adicionar atividade
-        </Text>
-      </Pressable>
-
-      <Pressable
-        accessibilityRole="button"
-        style={styles.secondaryButton}
-        onPress={() => router.push("/configuracoes")}
-      >
-        <Text style={styles.secondaryButtonText}>
-          Configurar acessibilidade
-        </Text>
-      </Pressable>
+      <HoverButton 
+        onPress={() => router.push("/atividades")} 
+        icon="pencil-outline" 
+        text="Ver minhas atividades" 
+        fontSize={fontSize}
+        color={colors.primary}
+        textColor={colors.buttonText}
+      />
+      <HoverButton 
+        onPress={() => router.push("/atividades/nova")} 
+        icon="plus" 
+        text="Adicionar atividade" 
+        fontSize={fontSize}
+        color={colors.primary}
+        textColor={colors.buttonText}
+      />
+      <HoverButton 
+        onPress={() => router.push("/configuracoes")} 
+        icon="cog-outline" 
+        text="Configurar acessibilidade" 
+        fontSize={fontSize}
+        color={colors.primary}
+        textColor={colors.buttonText}
+      />
     </View>
   );
 }
@@ -53,46 +98,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    gap: 16,
-    backgroundColor: "#F5F7FA",
+    gap: 20,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
-  title: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: "#202020",
+  title: { 
+    fontFamily: 'Montserrat_700Bold', 
+    textAlign: 'center' 
   },
-  subtitle: {
-    fontSize: 22,
-    lineHeight: 30,
-    color: "#404040",
-    marginBottom: 16,
+  subtitle: { 
+    fontFamily: 'Montserrat_400Regular', 
+    textAlign: 'center',
+    marginBottom: 10
   },
-  primaryButton: {
-    minHeight: 58,
-    justifyContent: "center",
+  button: {
+    flexDirection: "row",
+    minHeight: 64,
     alignItems: "center",
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: "#2457C5",
-  },
-  primaryButtonText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  secondaryButton: {
-    minHeight: 58,
     justifyContent: "center",
-    alignItems: "center",
     paddingHorizontal: 24,
-    borderWidth: 2,
-    borderRadius: 12,
-    borderColor: "#2457C5",
-    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  secondaryButtonText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#2457C5",
+  buttonText: {
+    fontFamily: 'Montserrat_700Bold',
   },
 });
