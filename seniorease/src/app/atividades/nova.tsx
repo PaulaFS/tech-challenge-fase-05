@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -122,6 +123,26 @@ export default function NewActivityScreen() {
       };
 
       await saveActivity(newActivity);
+       if (Platform.OS === "web") {
+        window.alert(
+          "Atividade cadastrada com sucesso!",
+        );
+
+        router.replace("/atividades");
+        return;
+      }
+
+      Alert.alert(
+        "Atividade cadastrada",
+        "A atividade foi salva com sucesso.",
+        [
+          {
+            text: "Ver atividades",
+            onPress: () =>
+              router.replace("/atividades"),
+          },
+        ],
+      );
       router.back();
     } catch {
       setErrorMessage("Não foi possível salvar a atividade.");
