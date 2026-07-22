@@ -23,7 +23,6 @@ const categoryLabels: Record<ActivityCategory, string> = {
   outros: "Outros",
 };
 
-
 const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isHovered, setIsHovered] = useState(false);
@@ -41,9 +40,7 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
       <Pressable
-
         onHoverIn={handleHoverIn}
-
         onHoverOut={handleHoverOut}
         onPress={onPress}
         style={[styles.actionButton, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
@@ -132,10 +129,12 @@ export default function ActivitiesScreen() {
           textColor={colors.buttonText}
         />
       </View>
+      
+      {/* Botão ver histórico de atividades com ícone corrigido */}
       <View style={styles.topButtonWrapper}>
         <HoverButton
           onPress={() => router.push("/historico")}
-          icon="plus"
+          icon="history"
           text="Ver histórico de atividades"
           fontSize={fontSize}
           color={colors.primary}
@@ -201,6 +200,7 @@ export default function ActivitiesScreen() {
       )}
     </ScrollView>
   );
+
   function convertToSortableDate(
     date: string,
     time: string,

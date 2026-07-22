@@ -18,13 +18,13 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [fontSize, setFontSize] = useState<number>(20);
+  const [fontSize, setFontSize] = useState<number>(15);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
   const colors = {
-    background: isDarkMode ? '#121212' : '#FFF9F0',
+   background: isDarkMode ? '#121212' : '#FFF9F0',
     primary: '#D35400', 
     text: isDarkMode ? '#F5F5F5' : '#2C3E50',
     cardBackground: isDarkMode ? '#1E1E1E' : '#FFFFFF',
