@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,

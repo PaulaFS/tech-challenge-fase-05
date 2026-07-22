@@ -9,7 +9,17 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerTitleAlign: "center",
-          headerBackTitle: "Voltar",
+          headerStyle: {
+            backgroundColor: colors.surface,
+          },
+          headerTintColor: colors.text,
+          headerTitleStyle: {
+            fontSize: 18 * fontScale,
+            fontWeight: "700",
+          },
+          contentStyle: {
+            backgroundColor: colors.background,
+          },
         }}
       >
         <Stack.Screen name="index" options={{ title: "SeniorEase" }} />

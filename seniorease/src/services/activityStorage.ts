@@ -91,3 +91,16 @@ export async function deleteActivity(
 
   await saveActivities(remainingActivities);
 }
+
+export async function getCompletedActivities(): Promise<Activity[]> {
+  const activities = await getActivities();
+
+  return activities
+    .filter((activity) => activity.status === "concluida")
+    .sort((a, b) => {
+      const first = a.completedAt ?? "";
+      const second = b.completedAt ?? "";
+
+      return second.localeCompare(first);
+    });
+}
