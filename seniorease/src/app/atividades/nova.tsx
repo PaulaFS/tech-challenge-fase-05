@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,17 +12,12 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-import {
-  Activity,
-  ActivityCategory,
-} from "@/domain/entities/Activity";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Activity, ActivityCategory } from "@/domain/entities/Activity";
 import { saveActivity } from "@/services/activityStorage";
+import { useTheme } from "../../constants/theme";
 
-const categories: Array<{
-  value: ActivityCategory;
-  label: string;
-}> = [
+const categories: Array<{ value: ActivityCategory; label: string }> = [
   { value: "saude", label: "Saúde" },
   { value: "casa", label: "Casa" },
   { value: "estudo", label: "Estudo" },
@@ -31,41 +27,78 @@ const categories: Array<{
 ];
 
 export default function NewActivityScreen() {
+  const { fontSize, colors } = useTheme();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [category, setCategory] =
-    useState<ActivityCategory>("saude");
-
+  const [category, setCategory] = useState<ActivityCategory>("saude");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  function handleDateChange(text: string) {
+    let cleaned = text.replace(/\D/g, "");
+    if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
+
+    let formatted = cleaned;
+    if (cleaned.length >= 5) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
+    } else if (cleaned.length >= 3) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    }
+
+    setDate(formatted);
+  }
+
+  function handleTimeChange(text: string) {
+    let cleaned = text.replace(/\D/g, "");
+    if (cleaned.length > 4) cleaned = cleaned.slice(0, 4);
+
+    let formatted = cleaned;
+    if (cleaned.length >= 3) {
+      formatted = `${cleaned.slice(0, 2)}:${cleaned.slice(2)}`;
+    }
+
+    setTime(formatted);
+  }
+
+  function isFutureDate(dateString: string): boolean {
+    const parts = dateString.split("/");
+    if (parts.length !== 3) return false;
+
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+
+    const inputDate = new Date(year, month, day);
+    if (isNaN(inputDate.getTime())) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return inputDate >= today;
+  }
+
   function validateForm(): boolean {
     if (!title.trim()) {
-      setErrorMessage("Informe o nome da atividade.");
+      const msg = "Informe o nome da atividade.";
+      setErrorMessage(msg);
+      return false;
+    }
+    if (!date.trim() || !/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+      const msg = "Informe a data completa no formato DD/MM/AAAA.";
+      setErrorMessage(msg);
       return false;
     }
 
-    if (!date.trim()) {
-      setErrorMessage("Informe a data da atividade.");
-      return false;
-    }
-
-    const validDate =
-      /^\d{2}\/\d{2}\/\d{4}$/.test(date);
-
-    if (!validDate) {
-      setErrorMessage(
-        "Informe a data no formato DD/MM/AAAA.",
-      );
-      return false;
-    }
-
-    if (time && !/^\d{2}:\d{2}$/.test(time)) {
-      setErrorMessage(
-        "Informe o horário no formato HH:MM.",
-      );
+    if (!isFutureDate(date)) {
+      const msg = "A data informada já passou. Por favor, escolha uma data futura.";
+      setErrorMessage(msg);
+      setModalMessage(msg);
+      setModalVisible(true);
       return false;
     }
 
@@ -74,29 +107,23 @@ export default function NewActivityScreen() {
   }
 
   async function handleSave() {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setLoading(true);
-
       const newActivity: Activity = {
-        id: `${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2, 8)}`,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         title: title.trim(),
         description: description.trim(),
         date: date.trim(),
         time: time.trim(),
         category,
         status: "pendente",
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(), 
       };
 
       await saveActivity(newActivity);
-
-      if (Platform.OS === "web") {
+       if (Platform.OS === "web") {
         window.alert(
           "Atividade cadastrada com sucesso!",
         );
@@ -116,331 +143,190 @@ export default function NewActivityScreen() {
           },
         ],
       );
+      router.back();
     } catch {
-      setErrorMessage(
-        "Não foi possível salvar a atividade. Tente novamente.",
-      );
+      setErrorMessage("Não foi possível salvar a atividade.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardView}
-      behavior={
-        Platform.OS === "ios" ? "padding" : undefined
-      }
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <Text
-            accessibilityRole="header"
-            style={styles.title}
-          >
-            Nova atividade
-          </Text>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.6 }]}>Nova Atividade</Text>
 
-          <Text style={styles.subtitle}>
-            Preencha as informações abaixo.
-          </Text>
-        </View>
-
-        {errorMessage ? (
-          <View
-            accessibilityRole="alert"
-            style={styles.errorContainer}
-          >
-            <Text style={styles.errorText}>
-              {errorMessage}
-            </Text>
-          </View>
-        ) : null}
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
         <View style={styles.field}>
-          <Text style={styles.label}>
-            Nome da atividade *
-          </Text>
-
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Título *</Text>
           <TextInput
-            accessibilityLabel="Nome da atividade"
-            accessibilityHint="Digite o nome da atividade"
             value={title}
             onChangeText={setTitle}
-            placeholder="Exemplo: Consulta médica"
-            maxLength={80}
-            autoCapitalize="sentences"
-            style={styles.input}
+            placeholder="Ex: Consulta médica"
+            placeholderTextColor="#888"
+            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Descrição</Text>
-
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Descrição (Opcional)</Text>
           <TextInput
-            accessibilityLabel="Descrição da atividade"
             value={description}
             onChangeText={setDescription}
-            placeholder="Adicione informações importantes"
+            placeholder="Detalhes ou anotações importantes..."
+            placeholderTextColor="#888"
             multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            maxLength={300}
-            style={[
-              styles.input,
-              styles.textArea,
-            ]}
+            numberOfLines={3}
+            style={[styles.input, styles.textArea, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
           />
         </View>
 
-        <View style={styles.row}>
-          <View style={styles.rowField}>
-            <Text style={styles.label}>Data *</Text>
-
-            <TextInput
-              accessibilityLabel="Data da atividade"
-              value={date}
-              onChangeText={setDate}
-              placeholder="DD/MM/AAAA"
-              keyboardType="numeric"
-              maxLength={10}
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.rowField}>
-            <Text style={styles.label}>Horário</Text>
-
-            <TextInput
-              accessibilityLabel="Horário da atividade"
-              value={time}
-              onChangeText={setTime}
-              placeholder="HH:MM"
-              keyboardType="numeric"
-              maxLength={5}
-              style={styles.input}
-            />
-          </View>
+        <View style={styles.field}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Data (DD/MM/AAAA) *</Text>
+          <TextInput
+            value={date}
+            onChangeText={handleDateChange}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            maxLength={10}
+            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+          />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Categoria</Text>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Horário (Opcional)</Text>
+          <TextInput
+            value={time}
+            onChangeText={handleTimeChange}
+            placeholder="HH:MM"
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            maxLength={5}
+            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+          />
+        </View>
 
+        <View style={styles.field}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Categoria</Text>
           <View style={styles.categories}>
-            {categories.map((item) => {
-              const selected =
-                category === item.value;
-
-              return (
-                <Pressable
-                  key={item.value}
-                  accessibilityRole="radio"
-                  accessibilityState={{
-                    checked: selected,
-                  }}
-                  accessibilityLabel={`Categoria ${item.label}`}
-                  onPress={() =>
-                    setCategory(item.value)
-                  }
-                  style={[
-                    styles.categoryButton,
-                    selected &&
-                      styles.categoryButtonSelected,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      selected &&
-                        styles.categoryTextSelected,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {categories.map((cat) => (
+              <Pressable
+                key={cat.value}
+                onPress={() => setCategory(cat.value)}
+                style={[
+                  styles.categoryButton,
+                  { borderColor: colors.primary },
+                  category === cat.value && { backgroundColor: colors.primary },
+                ]}
+              >
+                <Text style={[styles.categoryText, { color: colors.primary, fontSize: fontSize * 0.9 }, category === cat.value && { color: "#FFFFFF" }]}>
+                  {cat.label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </View>
 
         <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Salvar atividade"
-          accessibilityState={{
-            disabled: loading,
-          }}
-          disabled={loading}
           onPress={handleSave}
-          style={({ pressed }) => [
-            styles.saveButton,
-            pressed && styles.buttonPressed,
-            loading && styles.buttonDisabled,
-          ]}
-        >
-          <Text style={styles.saveButtonText}>
-            {loading
-              ? "Salvando..."
-              : "Salvar atividade"}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Cancelar cadastro"
           disabled={loading}
-          onPress={() => router.back()}
-          style={({ pressed }) => [
-            styles.cancelButton,
-            pressed && styles.buttonPressed,
-          ]}
+          style={[styles.saveButton, { backgroundColor: colors.primary }]}
         >
-          <Text style={styles.cancelButtonText}>
-            Cancelar
+          <Text style={[styles.saveButtonText, { fontSize: fontSize, color: "#FFFFFF" }]}>
+            {loading ? "Salvando..." : "Salvar Atividade"}
           </Text>
         </Pressable>
 
-        <Text style={styles.requiredText}>
-          * Campos obrigatórios
-        </Text>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <View style={styles.modalHeader}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={fontSize * 2.2} color="#A4161A" />
+                <Text style={[styles.modalTitle, { color: colors.text, fontSize: fontSize * 1.3 }]}>
+                  Atenção
+                </Text>
+              </View>
+
+              <Text style={[styles.modalMessage, { color: colors.text, fontSize: fontSize }]}>
+                {modalMessage}
+              </Text>
+
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: colors.primary }]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={[styles.modalButtonText, { fontSize: fontSize, color: "#FFFFFF" }]}>
+                  Entendi
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardView: {
+  container: { padding: 24, gap: 18, maxWidth: 600, alignSelf: 'center', width: '100%' },
+  title: { fontWeight: "bold", textAlign: "center", marginBottom: 10 },
+  errorText: { color: "#A4161A", fontSize: 16, textAlign: "center", fontWeight: "600" },
+  field: { gap: 8 },
+  label: { fontWeight: "600" },
+  input: { borderWidth: 2, borderRadius: 12, padding: 14, minHeight: 52 },
+  textArea: { minHeight: 90, textAlignVertical: 'top' },
+  categories: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  categoryButton: { paddingHorizontal: 16, paddingVertical: 10, borderWidth: 2, borderRadius: 12 },
+  categoryText: { fontWeight: "700" },
+  saveButton: { minHeight: 56, alignItems: "center", justifyContent: "center", borderRadius: 12, marginTop: 10 },
+  saveButtonText: { fontWeight: "bold" },
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
-  container: {
+  modalContent: {
     width: "100%",
-    maxWidth: 720,
-    alignSelf: "center",
+    maxWidth: 400,
     padding: 24,
-    gap: 24,
-  },
-  header: {
-    gap: 8,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#202020",
-  },
-  subtitle: {
-    fontSize: 19,
-    lineHeight: 28,
-    color: "#4A4A4A",
-  },
-  errorContainer: {
-    padding: 16,
+    borderRadius: 20,
     borderWidth: 2,
-    borderColor: "#A4161A",
-    borderRadius: 12,
-    backgroundColor: "#FFF0F0",
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#8A1014",
-  },
-  field: {
-    gap: 8,
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  rowField: {
-    flexGrow: 1,
-    flexBasis: 220,
-    gap: 8,
-  },
-  label: {
-    fontSize: 19,
-    fontWeight: "700",
-    color: "#202020",
-  },
-  input: {
-    minHeight: 56,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 2,
-    borderColor: "#737373",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    fontSize: 19,
-    color: "#202020",
-  },
-  textArea: {
-    minHeight: 120,
-  },
-  categories: {
+  modalHeader: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     gap: 12,
   },
-  categoryButton: {
-    minHeight: 52,
-    justifyContent: "center",
-    paddingHorizontal: 18,
-    borderWidth: 2,
-    borderColor: "#2457C5",
+  modalTitle: {
+    fontWeight: "bold",
+  },
+  modalMessage: {
+    lineHeight: 24,
+  },
+  modalButton: {
+    minHeight: 50,
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  categoryButtonSelected: {
-    backgroundColor: "#2457C5",
-  },
-  categoryText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#2457C5",
-  },
-  categoryTextSelected: {
-    color: "#FFFFFF",
-  },
-  saveButton: {
-    minHeight: 60,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: "#2457C5",
+    marginTop: 8,
   },
-  saveButtonText: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-  cancelButton: {
-    minHeight: 58,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    borderWidth: 2,
-    borderColor: "#2457C5",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  cancelButtonText: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#2457C5",
-  },
-  buttonPressed: {
-    opacity: 0.75,
-  },
-  buttonDisabled: {
-    opacity: 0.55,
-  },
-  requiredText: {
-    fontSize: 16,
-    color: "#555555",
-    textAlign: "center",
+  modalButtonText: {
+    fontWeight: "bold",
   },
 });
