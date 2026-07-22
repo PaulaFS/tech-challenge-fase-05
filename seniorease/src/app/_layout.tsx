@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ThemeProvider } from "../constants/theme"; 
+import { ThemeProvider } from "../constants/theme";
 
 export default function RootLayout() {
   return (
@@ -9,29 +9,18 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerTitleAlign: "center",
-          headerStyle: {
-            backgroundColor: colors.surface,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontSize: 18 * fontScale,
-            fontWeight: "700",
-          },
-          contentStyle: {
-            backgroundColor: colors.background,
-          },
+          headerBackTitle: "Voltar",
         }}
       >
         <Stack.Screen name="index" options={{ title: "SeniorEase" }} />
         <Stack.Screen name="atividades/index" options={{ title: "Minhas atividades" }} />
         <Stack.Screen name="atividades/nova" options={{ title: "Nova atividade" }} />
         <Stack.Screen name="atividades/[id]" options={{ title: "Detalhes da atividade" }} />
-        <Stack.Screen name="historico" options={{ title: "Histórico" }}/>
+        <Stack.Screen name="historico" options={{ title: "Histórico" }} />
         <Stack.Screen name="configuracoes" options={{ title: "Acessibilidade" }} />
-        <Stack.Screen name="perfil"  options={{ title: "Meu perfil" }} />
-      
+        <Stack.Screen name="perfil" options={{ title: "Meu perfil" }} />
+
       </Stack>
     </ThemeProvider>
   );
 }
-

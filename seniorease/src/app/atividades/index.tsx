@@ -40,10 +40,10 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
-      <Pressable 
-       
+      <Pressable
+
         onHoverIn={handleHoverIn}
-        
+
         onHoverOut={handleHoverOut}
         onPress={onPress}
         style={[styles.actionButton, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
@@ -71,7 +71,7 @@ export default function ActivitiesScreen() {
       setErrorMessage("");
       const storedActivities = await getActivities();
       const pendingActivities = storedActivities.filter((activity) => activity.status === "pendente")
-      .sort((firstActivity, secondActivity) => {
+        .sort((firstActivity, secondActivity) => {
           const firstDate = convertToSortableDate(
             firstActivity.date,
             firstActivity.time,
@@ -123,10 +123,20 @@ export default function ActivitiesScreen() {
 
       {/* Botão adicionar nova atividade */}
       <View style={styles.topButtonWrapper}>
-        <HoverButton 
-          onPress={() => router.push("/atividades/nova")} 
-          icon="plus" 
-          text="Adicionar nova atividade" 
+        <HoverButton
+          onPress={() => router.push("/atividades/nova")}
+          icon="plus"
+          text="Adicionar nova atividade"
+          fontSize={fontSize}
+          color={colors.primary}
+          textColor={colors.buttonText}
+        />
+      </View>
+      <View style={styles.topButtonWrapper}>
+        <HoverButton
+          onPress={() => router.push("/historico")}
+          icon="plus"
+          text="Ver histórico de atividades"
           fontSize={fontSize}
           color={colors.primary}
           textColor={colors.buttonText}
@@ -192,13 +202,13 @@ export default function ActivitiesScreen() {
     </ScrollView>
   );
   function convertToSortableDate(
-  date: string,
-  time: string,
-): string {
-  const [day, month, year] = date.split("/");
+    date: string,
+    time: string,
+  ): string {
+    const [day, month, year] = date.split("/");
 
-  return `${year}-${month}-${day} ${time || "23:59"}`;
-}
+    return `${year}-${month}-${day} ${time || "23:59"}`;
+  }
 }
 
 const styles = StyleSheet.create({
@@ -208,7 +218,9 @@ const styles = StyleSheet.create({
   header: { marginBottom: 15 },
   title: { fontWeight: "bold", marginBottom: 5 },
   subtitle: { opacity: 0.8 },
-  topButtonWrapper: { marginBottom: 20 },
+  topButtonWrapper: {
+    marginBottom: 20,
+  },
   actionButton: {
     flexDirection: "row",
     minHeight: 56,
@@ -245,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#FFF0F0",
   },
-   retryButton: {
+  retryButton: {
     minHeight: 52,
     alignItems: "center",
     justifyContent: "center",

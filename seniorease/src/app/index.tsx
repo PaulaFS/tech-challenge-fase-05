@@ -2,10 +2,10 @@ import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View, Animated } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from "react";
-import { 
-  useFonts, 
-  Montserrat_400Regular, 
-  Montserrat_700Bold 
+import {
+  useFonts,
+  Montserrat_400Regular,
+  Montserrat_700Bold
 } from '@expo-google-fonts/montserrat';
 import { useTheme } from "../constants/theme";
 
@@ -25,10 +25,10 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
-      <Pressable 
-        
+      <Pressable
+
         onHoverIn={handleHoverIn}
-        
+
         onHoverOut={handleHoverOut}
         onPress={onPress}
         style={[styles.button, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
@@ -65,30 +65,39 @@ export default function HomeScreen() {
         O que você precisa fazer hoje?
       </Text>
 
-      <HoverButton 
-        onPress={() => router.push("/atividades")} 
-        icon="pencil-outline" 
-        text="Ver minhas atividades" 
+      <HoverButton
+        onPress={() => router.push("/atividades")}
+        icon="pencil-outline"
+        text="Ver minhas atividades"
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
       />
-      <HoverButton 
-        onPress={() => router.push("/atividades/nova")} 
-        icon="plus" 
-        text="Adicionar atividade" 
+      <HoverButton
+        onPress={() => router.push("/atividades/nova")}
+        icon="plus"
+        text="Adicionar atividade"
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
       />
-      <HoverButton 
-        onPress={() => router.push("/configuracoes")} 
-        icon="cog-outline" 
-        text="Configurar acessibilidade" 
+      <HoverButton
+        onPress={() => router.push("/configuracoes")}
+        icon="cog-outline"
+        text="Configurar acessibilidade"
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
       />
+      <HoverButton
+        onPress={() => router.push("/historico")}
+        icon="cog-outline"
+        text="Histórico de atividades"
+        fontSize={fontSize}
+        color={colors.primary}
+        textColor={colors.buttonText}
+      />
+
     </View>
   );
 }
@@ -103,12 +112,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
-  title: { 
-    fontFamily: 'Montserrat_700Bold', 
-    textAlign: 'center' 
+  title: {
+    fontFamily: 'Montserrat_700Bold',
+    textAlign: 'center'
   },
-  subtitle: { 
-    fontFamily: 'Montserrat_400Regular', 
+  subtitle: {
+    fontFamily: 'Montserrat_400Regular',
     textAlign: 'center',
     marginBottom: 10
   },
