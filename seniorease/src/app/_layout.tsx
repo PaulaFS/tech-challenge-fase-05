@@ -10,6 +10,7 @@ export default function RootLayout() {
         screenOptions={{
           headerTitleAlign: "center",
           headerBackTitle: "Voltar",
+          
         }}
       >
         <Stack.Screen name="index" options={{ title: "SeniorEase" }} />
@@ -19,6 +20,8 @@ export default function RootLayout() {
         <Stack.Screen name="historico" options={{ title: "Histórico" }} />
         <Stack.Screen name="configuracoes" options={{ title: "Acessibilidade" }} />
         <Stack.Screen name="perfil" options={{ title: "Meu perfil" }} />
+        <Stack.Screen name="cadastro" options={{ title: "Criar Conta" }} />
+        <Stack.Screen name="login" options={{ title: "Entrar" }} />
 
       </Stack>
     </ThemeProvider>

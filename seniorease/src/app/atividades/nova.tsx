@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -36,8 +35,12 @@ export default function NewActivityScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Estado para controlar se o usuário tentou salvar (ativando o destaque vermelho nos erros)
+  const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [isSuccessModal, setIsSuccessModal] = useState(false);
 
   function handleDateChange(text: string) {
     let cleaned = text.replace(/\D/g, "");
@@ -86,17 +89,24 @@ export default function NewActivityScreen() {
     if (!title.trim()) {
       const msg = "Informe o nome da atividade.";
       setErrorMessage(msg);
+      setIsSuccessModal(false);
+      setModalMessage(msg);
+      setModalVisible(true);
       return false;
     }
     if (!date.trim() || !/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
       const msg = "Informe a data completa no formato DD/MM/AAAA.";
       setErrorMessage(msg);
+      setIsSuccessModal(false);
+      setModalMessage(msg);
+      setModalVisible(true);
       return false;
     }
 
     if (!isFutureDate(date)) {
       const msg = "A data informada já passou. Por favor, escolha uma data futura.";
       setErrorMessage(msg);
+      setIsSuccessModal(false);
       setModalMessage(msg);
       setModalVisible(true);
       return false;
@@ -107,6 +117,7 @@ export default function NewActivityScreen() {
   }
 
   async function handleSave() {
+    setHasAttemptedSave(true);
     if (!validateForm()) return;
 
     try {
@@ -123,49 +134,55 @@ export default function NewActivityScreen() {
       };
 
       await saveActivity(newActivity);
-       if (Platform.OS === "web") {
-        window.alert(
-          "Atividade cadastrada com sucesso!",
-        );
-
-        router.replace("/atividades");
-        return;
-      }
-
-      Alert.alert(
-        "Atividade cadastrada",
-        "A atividade foi salva com sucesso.",
-        [
-          {
-            text: "Ver atividades",
-            onPress: () =>
-              router.replace("/atividades"),
-          },
-        ],
-      );
-      router.back();
+      
+      setIsSuccessModal(true);
+      setModalMessage("A atividade foi salva com sucesso.");
+      setModalVisible(true);
     } catch {
       setErrorMessage("Não foi possível salvar a atividade.");
+      setIsSuccessModal(false);
+      setModalMessage("Não foi possível salvar a atividade.");
+      setModalVisible(true);
     } finally {
       setLoading(false);
     }
   }
+
+  function handleModalClose() {
+    setModalVisible(false);
+    if (isSuccessModal) {
+      router.replace("/atividades");
+    }
+  }
+
+  // Verificações visuais de erro para os inputs obrigatórios
+  const isTitleError = hasAttemptedSave && !title.trim();
+  const isDateError = hasAttemptedSave && (!date.trim() || !/^\d{2}\/\d{2}\/\d{4}$/.test(date) || !isFutureDate(date));
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.6 }]}>Nova Atividade</Text>
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Título *</Text>
+          <Text style={[styles.label, { color: isTitleError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
+            Título * {isTitleError && "(Obrigatório)"}
+          </Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
             placeholder="Ex: Consulta médica"
             placeholderTextColor="#888"
-            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+            style={[
+              styles.input, 
+              { 
+                backgroundColor: colors.cardBackground, 
+                color: colors.text, 
+                borderColor: isTitleError ? "#A4161A" : colors.border, 
+                fontSize: fontSize 
+              },
+              isTitleError && styles.inputErrorBackground
+            ]}
           />
         </View>
 
@@ -183,7 +200,9 @@ export default function NewActivityScreen() {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Data (DD/MM/AAAA) *</Text>
+          <Text style={[styles.label, { color: isDateError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
+            Data (DD/MM/AAAA) * {isDateError && "(Inválida ou vazia)"}
+          </Text>
           <TextInput
             value={date}
             onChangeText={handleDateChange}
@@ -191,7 +210,16 @@ export default function NewActivityScreen() {
             placeholderTextColor="#888"
             keyboardType="numeric"
             maxLength={10}
-            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+            style={[
+              styles.input, 
+              { 
+                backgroundColor: colors.cardBackground, 
+                color: colors.text, 
+                borderColor: isDateError ? "#A4161A" : colors.border, 
+                fontSize: fontSize 
+              },
+              isDateError && styles.inputErrorBackground
+            ]}
           />
         </View>
 
@@ -243,14 +271,18 @@ export default function NewActivityScreen() {
           animationType="fade"
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
+          onRequestClose={handleModalClose}
         >
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.modalHeader}>
-                <MaterialCommunityIcons name="alert-circle-outline" size={fontSize * 2.2} color="#A4161A" />
+                <MaterialCommunityIcons 
+                  name={isSuccessModal ? "check-circle-outline" : "alert-circle-outline"} 
+                  size={fontSize * 2.2} 
+                  color={isSuccessModal ? "#18794E" : "#A4161A"} 
+                />
                 <Text style={[styles.modalTitle, { color: colors.text, fontSize: fontSize * 1.3 }]}>
-                  Atenção
+                  {isSuccessModal ? "Sucesso" : "Atenção"}
                 </Text>
               </View>
 
@@ -260,7 +292,7 @@ export default function NewActivityScreen() {
 
               <Pressable
                 style={[styles.modalButton, { backgroundColor: colors.primary }]}
-                onPress={() => setModalVisible(false)}
+                onPress={handleModalClose}
               >
                 <Text style={[styles.modalButtonText, { fontSize: fontSize, color: "#FFFFFF" }]}>
                   Entendi
@@ -278,10 +310,10 @@ export default function NewActivityScreen() {
 const styles = StyleSheet.create({
   container: { padding: 24, gap: 18, maxWidth: 600, alignSelf: 'center', width: '100%' },
   title: { fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  errorText: { color: "#A4161A", fontSize: 16, textAlign: "center", fontWeight: "600" },
   field: { gap: 8 },
   label: { fontWeight: "600" },
   input: { borderWidth: 2, borderRadius: 12, padding: 14, minHeight: 52 },
+  inputErrorBackground: { backgroundColor: '#FDF2F2' }, // Leve tom avermelhado no fundo se houver erro
   textArea: { minHeight: 90, textAlignVertical: 'top' },
   categories: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   categoryButton: { paddingHorizontal: 16, paddingVertical: 10, borderWidth: 2, borderRadius: 12 },

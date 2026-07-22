@@ -26,9 +26,7 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
       <Pressable
-
         onHoverIn={handleHoverIn}
-
         onHoverOut={handleHoverOut}
         onPress={onPress}
         style={[styles.button, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
@@ -91,11 +89,21 @@ export default function HomeScreen() {
       />
       <HoverButton
         onPress={() => router.push("/historico")}
-        icon="cog-outline"
+        icon="history"
         text="Histórico de atividades"
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
+      />
+
+      {/* Botão de Sair intuitivo e adaptado */}
+      <HoverButton
+        onPress={() => router.replace("/login")}
+        icon="logout"
+        text="Sair do aplicativo"
+        fontSize={fontSize}
+        color="#71717a" // Cor neutra de apoio para diferenciar a ação de saída
+        textColor="#ffffff"
       />
 
     </View>
