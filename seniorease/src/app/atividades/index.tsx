@@ -70,7 +70,21 @@ export default function ActivitiesScreen() {
       setLoading(true);
       setErrorMessage("");
       const storedActivities = await getActivities();
-      const pendingActivities = storedActivities.filter((activity) => activity.status === "pendente");
+      const pendingActivities = storedActivities.filter((activity) => activity.status === "pendente")
+      .sort((firstActivity, secondActivity) => {
+          const firstDate = convertToSortableDate(
+            firstActivity.date,
+            firstActivity.time,
+          );
+
+          const secondDate = convertToSortableDate(
+            secondActivity.date,
+            secondActivity.time,
+          );
+
+          return firstDate.localeCompare(secondDate);
+        });
+
       setActivities(pendingActivities);
     } catch {
       setErrorMessage("Não foi possível carregar suas atividades.");
@@ -119,7 +133,26 @@ export default function ActivitiesScreen() {
         />
       </View>
 
-      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {errorMessage ? (
+        <View
+          accessibilityRole="alert"
+          style={styles.errorContainer}
+        >
+          <Text style={styles.errorText}>
+            {errorMessage}
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void loadActivities()}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryButtonText}>
+              Tentar novamente
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {activities.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -158,6 +191,14 @@ export default function ActivitiesScreen() {
       )}
     </ScrollView>
   );
+  function convertToSortableDate(
+  date: string,
+  time: string,
+): string {
+  const [day, month, year] = date.split("/");
+
+  return `${year}-${month}-${day} ${time || "23:59"}`;
+}
 }
 
 const styles = StyleSheet.create({
@@ -195,5 +236,25 @@ const styles = StyleSheet.create({
   categoryText: { fontWeight: "700", color: "#FFFFFF" },
   pendingStatus: { fontWeight: "700" },
   activityTitle: { fontWeight: "bold" },
-  activityDate: { opacity: 0.8 }
+  activityDate: { opacity: 0.8 },
+  errorContainer: {
+    gap: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: "#A4161A",
+    borderRadius: 12,
+    backgroundColor: "#FFF0F0",
+  },
+   retryButton: {
+    minHeight: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    backgroundColor: "#A4161A",
+  },
+  retryButtonText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
 });
