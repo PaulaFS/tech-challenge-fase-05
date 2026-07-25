@@ -19,7 +19,7 @@ import { getCompletedActivities } from "@/services/activityStorage";
 import { useTheme } from "../constants/theme";
 
 export default function HistoryScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,7 @@ export default function HistoryScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
+      <View style={[styles.center, { backgroundColor: colors.background, padding: spacing.lg }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize * 1.1 }]}>
           Carregando histórico...
@@ -57,13 +57,13 @@ export default function HistoryScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 2.2 }]}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.lg }]}>
+      <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 2.2, marginBottom: spacing.xs }]}>
         Histórico de Atividades
       </Text>
 
       {activities.length === 0 ? (
-        <View style={styles.empty}>
+        <View style={[styles.empty, { marginTop: spacing.xl * 2, gap: spacing.md }]}>
           <MaterialCommunityIcons
             name="clipboard-text-outline"
             size={64}
@@ -77,19 +77,28 @@ export default function HistoryScreen() {
         activities.map((activity) => (
           <View
             key={activity.id}
-            style={[styles.card, { borderColor: colors.primary + '33' }]}
+            style={[
+              styles.card, 
+              { 
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing.lg,
+                gap: spacing.sm
+              }
+            ]}
           >
             <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSize * 1.3 }]}>
               {activity.title}
             </Text>
 
             {activity.description ? (
-              <Text style={[styles.description, { color: colors.text, fontSize: fontSize * 1.05, opacity: 0.8 }]}>
+              <Text style={[styles.description, { color: colors.textSecondary || colors.text, fontSize: fontSize * 1.05, opacity: 0.8 }]}>
                 {activity.description}
               </Text>
             ) : null}
 
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { gap: spacing.xs }]}>
               <MaterialCommunityIcons name="calendar" size={fontSize * 1.2} color={colors.primary} />
               <Text style={[styles.dateText, { color: colors.text, fontSize: fontSize }]}>
                 {activity.date}
@@ -97,7 +106,7 @@ export default function HistoryScreen() {
             </View>
 
             {activity.time ? (
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { gap: spacing.xs }]}>
                 <MaterialCommunityIcons name="clock-outline" size={fontSize * 1.2} color={colors.primary} />
                 <Text style={[styles.dateText, { color: colors.text, fontSize: fontSize }]}>
                   {activity.time}
@@ -105,7 +114,7 @@ export default function HistoryScreen() {
               </View>
             ) : null}
 
-            <View style={styles.completedContainer}>
+            <View style={[styles.completedContainer, { gap: spacing.xs, marginTop: spacing.xs, paddingTop: spacing.sm, borderTopColor: colors.border }]}>
               <MaterialCommunityIcons name="check-circle" size={fontSize * 1.2} color="#18794E" />
               <Text style={[styles.completed, { fontSize: fontSize * 0.95 }]}>
                 Concluída em{" "}
@@ -124,8 +133,6 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    gap: 20,
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
@@ -135,8 +142,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    gap: 16,
-    padding: 24,
   },
   loadingText: {
     fontFamily: 'Montserrat_400Regular',
@@ -145,24 +150,17 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Montserrat_700Bold',
     textAlign: 'center',
-    marginBottom: 5,
   },
   empty: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 80,
-    gap: 16,
   },
   emptyTitle: {
     fontFamily: 'Montserrat_400Regular',
     textAlign: "center",
   },
   card: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
     borderWidth: 1.5,
-    gap: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -178,7 +176,6 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   dateText: {
     fontFamily: 'Montserrat_400Regular',
@@ -186,11 +183,7 @@ const styles = StyleSheet.create({
   completedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
   },
   completed: {
     fontFamily: 'Montserrat_700Bold',

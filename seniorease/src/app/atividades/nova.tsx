@@ -12,8 +12,14 @@ import {
   View,
 } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  useFonts,
+  Montserrat_400Regular,
+  Montserrat_700Bold,
+} from '@expo-google-fonts/montserrat';
 import { Activity, ActivityCategory } from "@/domain/entities/Activity";
 import { saveActivity } from "@/services/activityStorage";
+import { getLoggedUser } from "@/services/authStorage"; 
 import { useTheme } from "../../constants/theme";
 
 const categories: Array<{ value: ActivityCategory; label: string }> = [
@@ -26,7 +32,7 @@ const categories: Array<{ value: ActivityCategory; label: string }> = [
 ];
 
 export default function NewActivityScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -35,12 +41,16 @@ export default function NewActivityScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Estado para controlar se o usuário tentou salvar (ativando o destaque vermelho nos erros)
   const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isSuccessModal, setIsSuccessModal] = useState(false);
+
+  let [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_700Bold,
+  });
 
   function handleDateChange(text: string) {
     let cleaned = text.replace(/\D/g, "");
@@ -122,8 +132,13 @@ export default function NewActivityScreen() {
 
     try {
       setLoading(true);
+
+      const currentUser = await getLoggedUser();
+      const userId = currentUser ? currentUser.id : "default-user";
+
       const newActivity: Activity = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        userId, 
         title: title.trim(),
         description: description.trim(),
         date: date.trim(),
@@ -155,16 +170,19 @@ export default function NewActivityScreen() {
     }
   }
 
-  // Verificações visuais de erro para os inputs obrigatórios
   const isTitleError = hasAttemptedSave && !title.trim();
   const isDateError = hasAttemptedSave && (!date.trim() || !/^\d{2}\/\d{2}\/\d{4}$/.test(date) || !isFutureDate(date));
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { padding: spacing.lg, gap: spacing.md }]}>
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.6 }]}>Nova Atividade</Text>
 
-        <View style={styles.field}>
+        <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: isTitleError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
             Título * {isTitleError && "(Obrigatório)"}
           </Text>
@@ -179,6 +197,8 @@ export default function NewActivityScreen() {
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
                 borderColor: isTitleError ? "#A4161A" : colors.border, 
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
                 fontSize: fontSize 
               },
               isTitleError && styles.inputErrorBackground
@@ -186,7 +206,7 @@ export default function NewActivityScreen() {
           />
         </View>
 
-        <View style={styles.field}>
+        <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Descrição (Opcional)</Text>
           <TextInput
             value={description}
@@ -195,11 +215,23 @@ export default function NewActivityScreen() {
             placeholderTextColor="#888"
             multiline
             numberOfLines={3}
-            style={[styles.input, styles.textArea, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+            style={[
+              styles.input, 
+              styles.textArea, 
+              { 
+                backgroundColor: colors.cardBackground, 
+                color: colors.text, 
+                borderColor: colors.border, 
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+                fontSize: fontSize 
+              }
+            ]}
           />
         </View>
 
-        <View style={styles.field}>
+        <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: isDateError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
             Data (DD/MM/AAAA) * {isDateError && "(Inválida ou vazia)"}
           </Text>
@@ -216,6 +248,8 @@ export default function NewActivityScreen() {
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
                 borderColor: isDateError ? "#A4161A" : colors.border, 
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
                 fontSize: fontSize 
               },
               isDateError && styles.inputErrorBackground
@@ -223,7 +257,7 @@ export default function NewActivityScreen() {
           />
         </View>
 
-        <View style={styles.field}>
+        <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Horário (Opcional)</Text>
           <TextInput
             value={time}
@@ -232,20 +266,35 @@ export default function NewActivityScreen() {
             placeholderTextColor="#888"
             keyboardType="numeric"
             maxLength={5}
-            style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.text, borderColor: colors.border, fontSize: fontSize }]}
+            style={[
+              styles.input, 
+              { 
+                backgroundColor: colors.cardBackground, 
+                color: colors.text, 
+                borderColor: colors.border, 
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                fontSize: fontSize 
+              }
+            ]}
           />
         </View>
 
-        <View style={styles.field}>
+        <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Categoria</Text>
-          <View style={styles.categories}>
+          <View style={[styles.categories, { gap: spacing.sm }]}>
             {categories.map((cat) => (
               <Pressable
                 key={cat.value}
                 onPress={() => setCategory(cat.value)}
                 style={[
                   styles.categoryButton,
-                  { borderColor: colors.primary },
+                  { 
+                    borderColor: colors.primary, 
+                    borderRadius: borderRadius.md,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm
+                  },
                   category === cat.value && { backgroundColor: colors.primary },
                 ]}
               >
@@ -260,7 +309,14 @@ export default function NewActivityScreen() {
         <Pressable
           onPress={handleSave}
           disabled={loading}
-          style={[styles.saveButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.saveButton, 
+            { 
+              backgroundColor: colors.primary,
+              borderRadius: borderRadius.lg,
+              marginTop: spacing.sm
+            }
+          ]}
         >
           <Text style={[styles.saveButtonText, { fontSize: fontSize, color: "#FFFFFF" }]}>
             {loading ? "Salvando..." : "Salvar Atividade"}
@@ -273,9 +329,20 @@ export default function NewActivityScreen() {
           visible={modalVisible}
           onRequestClose={handleModalClose}
         >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <View style={styles.modalHeader}>
+          <View style={[styles.modalOverlay, { padding: spacing.lg }]}>
+            <View 
+              style={[
+                styles.modalContent, 
+                { 
+                  backgroundColor: colors.cardBackground, 
+                  borderColor: colors.border,
+                  borderRadius: borderRadius.lg,
+                  padding: spacing.lg,
+                  gap: spacing.md
+                }
+              ]}
+            >
+              <View style={[styles.modalHeader, { gap: spacing.sm }]}>
                 <MaterialCommunityIcons 
                   name={isSuccessModal ? "check-circle-outline" : "alert-circle-outline"} 
                   size={fontSize * 2.2} 
@@ -291,7 +358,14 @@ export default function NewActivityScreen() {
               </Text>
 
               <Pressable
-                style={[styles.modalButton, { backgroundColor: colors.primary }]}
+                style={[
+                  styles.modalButton, 
+                  { 
+                    backgroundColor: colors.primary,
+                    borderRadius: borderRadius.md,
+                    marginTop: spacing.xs
+                  }
+                ]}
                 onPress={handleModalClose}
               >
                 <Text style={[styles.modalButtonText, { fontSize: fontSize, color: "#FFFFFF" }]}>
@@ -308,32 +382,62 @@ export default function NewActivityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 18, maxWidth: 600, alignSelf: 'center', width: '100%' },
-  title: { fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  field: { gap: 8 },
-  label: { fontWeight: "600" },
-  input: { borderWidth: 2, borderRadius: 12, padding: 14, minHeight: 52 },
-  inputErrorBackground: { backgroundColor: '#FDF2F2' }, // Leve tom avermelhado no fundo se houver erro
-  textArea: { minHeight: 90, textAlignVertical: 'top' },
-  categories: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  categoryButton: { paddingHorizontal: 16, paddingVertical: 10, borderWidth: 2, borderRadius: 12 },
-  categoryText: { fontWeight: "700" },
-  saveButton: { minHeight: 56, alignItems: "center", justifyContent: "center", borderRadius: 12, marginTop: 10 },
-  saveButtonText: { fontWeight: "bold" },
+  container: { 
+    maxWidth: 600, 
+    alignSelf: 'center', 
+    width: '100%',
+    flexGrow: 1,
+  },
+  title: { 
+    fontFamily: 'Montserrat_700Bold', 
+    textAlign: "center", 
+    marginBottom: 5, 
+  },
+  field: {},
+  label: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  input: { 
+    borderWidth: 2, 
+    minHeight: 52,
+    fontFamily: 'Montserrat_400Regular',
+  },
+  inputErrorBackground: { 
+    backgroundColor: '#FDF2F2' 
+  }, 
+  textArea: { 
+    minHeight: 90, 
+    textAlignVertical: 'top' 
+  },
+  categories: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+  },
+  categoryButton: { 
+    borderWidth: 2, 
+  },
+  categoryText: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  saveButton: { 
+    minHeight: 56, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    elevation: 3,
+  },
+  saveButtonText: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   modalContent: {
     width: "100%",
     maxWidth: 400,
-    padding: 24,
-    borderRadius: 20,
     borderWidth: 2,
-    gap: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -343,22 +447,20 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   modalTitle: {
-    fontWeight: "bold",
+    fontFamily: 'Montserrat_700Bold',
   },
   modalMessage: {
+    fontFamily: 'Montserrat_400Regular',
     lineHeight: 24,
   },
   modalButton: {
     minHeight: 50,
-    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
   },
   modalButtonText: {
-    fontWeight: "bold",
+    fontFamily: 'Montserrat_700Bold',
   },
 });

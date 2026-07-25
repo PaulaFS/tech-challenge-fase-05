@@ -9,7 +9,7 @@ import {
 } from '@expo-google-fonts/montserrat';
 import { useTheme } from "../constants/theme";
 
-const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) => {
+const HoverButton = ({ onPress, icon, text, fontSize, color, textColor, borderRadius, spacing }: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isHovered, setIsHovered] = useState(false);
 
@@ -29,7 +29,16 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
         onHoverIn={handleHoverIn}
         onHoverOut={handleHoverOut}
         onPress={onPress}
-        style={[styles.button, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
+        style={[
+          styles.button, 
+          { 
+            backgroundColor: color, 
+            borderRadius: borderRadius.lg,
+            paddingHorizontal: spacing.lg,
+            gap: spacing.sm
+          }, 
+          isHovered && { opacity: 0.9 }
+        ]}
         accessibilityRole="button"
         accessibilityLabel={text}
       >
@@ -43,7 +52,7 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
 };
 
 export default function HomeScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
 
   let [fontsLoaded] = useFonts({
     Montserrat_400Regular,
@@ -55,11 +64,11 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]}>
       <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 2.2 }]}>
         Seja bem-vindo!
       </Text>
-      <Text style={[styles.subtitle, { color: colors.text, fontSize: fontSize * 1.2 }]}>
+      <Text style={[styles.subtitle, { color: colors.textSecondary || colors.text, fontSize: fontSize * 1.2, marginBottom: spacing.sm }]}>
         O que você precisa fazer hoje?
       </Text>
 
@@ -70,6 +79,8 @@ export default function HomeScreen() {
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
+        borderRadius={borderRadius}
+        spacing={spacing}
       />
       <HoverButton
         onPress={() => router.push("/atividades/nova")}
@@ -78,6 +89,8 @@ export default function HomeScreen() {
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
+        borderRadius={borderRadius}
+        spacing={spacing}
       />
       <HoverButton
         onPress={() => router.push("/configuracoes")}
@@ -86,6 +99,8 @@ export default function HomeScreen() {
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
+        borderRadius={borderRadius}
+        spacing={spacing}
       />
       <HoverButton
         onPress={() => router.push("/historico")}
@@ -94,16 +109,31 @@ export default function HomeScreen() {
         fontSize={fontSize}
         color={colors.primary}
         textColor={colors.buttonText}
+        borderRadius={borderRadius}
+        spacing={spacing}
       />
 
-      {/* Botão de Sair intuitivo e adaptado */}
+      {/* Novo Botão para a Tela de Perfil */}
+      <HoverButton
+        onPress={() => router.push("/perfil")}
+        icon="account-outline"
+        text="Meu perfil e cadastro"
+        fontSize={fontSize}
+        color={colors.primary}
+        textColor={colors.buttonText}
+        borderRadius={borderRadius}
+        spacing={spacing}
+      />
+
       <HoverButton
         onPress={() => router.replace("/login")}
         icon="logout"
         text="Sair do aplicativo"
         fontSize={fontSize}
-        color="#71717a" // Cor neutra de apoio para diferenciar a ação de saída
-        textColor="#ffffff"
+        color={colors.cardBackground || "#71717a"} 
+        textColor={colors.text}
+        borderRadius={borderRadius}
+        spacing={spacing}
       />
 
     </View>
@@ -114,8 +144,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 24,
-    gap: 20,
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
@@ -127,16 +155,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Montserrat_400Regular',
     textAlign: 'center',
-    marginBottom: 10
   },
   button: {
     flexDirection: "row",
     minHeight: 64,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    gap: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
