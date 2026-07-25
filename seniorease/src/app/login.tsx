@@ -9,15 +9,25 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  useFonts,
+  Montserrat_400Regular,
+  Montserrat_700Bold
+} from '@expo-google-fonts/montserrat';
 import { useTheme } from "../constants/theme";
-import { loginUser } from "@/services/authStorage"; // <-- Importado do seu serviço de auth
+import { loginUser } from "@/services/authStorage";
 
 export default function LoginScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState(""); // Feedback visual de sucesso
+  const [successMessage, setSuccessMessage] = useState("");
+
+  let [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_700Bold,
+  });
 
   const handleLogin = async () => {
     setSuccessMessage("");
@@ -46,41 +56,44 @@ export default function LoginScreen() {
     router.push("/cadastro");
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <ScrollView 
-      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]} 
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]} 
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { marginBottom: spacing.xl }]}>
+        {/* Substituído borderRadius.full por borderRadius.pill ou 40 */}
+        <View style={[styles.iconContainer, { backgroundColor: colors.primary, borderRadius: borderRadius.pill || 40 }]}>
           <MaterialCommunityIcons name="shield-account" size={48} color="#FFFFFF" />
         </View>
         <Text accessibilityRole="header" style={[styles.title, { color: colors.text, fontSize: fontSize * 1.8 }]}>
           SeniorEase
         </Text>
-        <Text style={[styles.subtitle, { color: colors.text, fontSize: fontSize * 0.9 }]}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
           Acesse sua conta para gerenciar suas tarefas com facilidade.
         </Text>
       </View>
 
-      {/* Mensagem de Erro */}
       {errorMessage ? (
-        <View style={styles.errorContainer}>
+        <View style={[styles.errorContainer, { borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.sm }]}>
           <MaterialCommunityIcons name="alert-circle" size={20} color="#A4161A" />
-          <Text style={styles.errorText}>{errorMessage}</Text>
+          <Text style={[styles.errorText, { fontSize: fontSize * 0.95 }]}>{errorMessage}</Text>
         </View>
       ) : null}
 
-      {/* Mensagem de Sucesso */}
       {successMessage ? (
-        <View style={styles.successContainer}>
+        <View style={[styles.successContainer, { borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.sm }]}>
           <MaterialCommunityIcons name="check-circle" size={20} color="#27ae60" />
-          <Text style={styles.successText}>{successMessage}</Text>
+          <Text style={[styles.successText, { fontSize: fontSize * 0.95 }]}>{successMessage}</Text>
         </View>
       ) : null}
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
+      <View style={[styles.form, { gap: spacing.md }]}>
+        <View style={[styles.inputGroup, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
             E-mail ou Usuário *
           </Text>
@@ -97,6 +110,8 @@ export default function LoginScreen() {
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
                 borderColor: colors.border,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
                 fontSize: fontSize 
               }
             ]}
@@ -104,7 +119,7 @@ export default function LoginScreen() {
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
             Senha *
           </Text>
@@ -120,6 +135,8 @@ export default function LoginScreen() {
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
                 borderColor: colors.border,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
                 fontSize: fontSize 
               }
             ]}
@@ -127,12 +144,19 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* Botão Principal de Entrar */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Botão Entrar"
           onPress={handleLogin}
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button, 
+            { 
+              backgroundColor: colors.primary,
+              borderRadius: borderRadius.lg,
+              marginTop: spacing.xs,
+              gap: spacing.sm
+            }
+          ]}
         >
           <MaterialCommunityIcons name="login" size={24} color="#FFFFFF" />
           <Text style={[styles.buttonText, { fontSize: fontSize * 1.1 }]}>
@@ -140,19 +164,25 @@ export default function LoginScreen() {
           </Text>
         </Pressable>
 
-        {/* Divisor Visual */}
-        <View style={styles.dividerContainer}>
+        <View style={[styles.dividerContainer, { marginVertical: spacing.xs }]}>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.text, fontSize: fontSize * 0.85 }]}>ou</Text>
+          <Text style={[styles.dividerText, { color: colors.text, fontSize: fontSize * 0.85, paddingHorizontal: spacing.sm }]}>ou</Text>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
         </View>
 
-        {/* Botão Secundário de Criar Cadastro */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Botão Criar Cadastro"
           onPress={handleNavigateToRegister}
-          style={[styles.secondaryButton, { borderColor: colors.primary, backgroundColor: colors.cardBackground }]}
+          style={[
+            styles.secondaryButton, 
+            { 
+              borderColor: colors.primary, 
+              backgroundColor: colors.cardBackground,
+              borderRadius: borderRadius.lg,
+              gap: spacing.sm
+            }
+          ]}
         >
           <MaterialCommunityIcons name="account-plus" size={24} color={colors.primary} />
           <Text style={[styles.secondaryButtonText, { color: colors.primary, fontSize: fontSize * 1.1 }]}>
@@ -166,7 +196,6 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
     flexGrow: 1,
     maxWidth: 600,
     alignSelf: 'center',
@@ -175,94 +204,77 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 30,
   },
   iconContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
     elevation: 4,
   },
   title: {
-    fontWeight: "bold",
+    fontFamily: 'Montserrat_700Bold',
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
+    fontFamily: 'Montserrat_400Regular',
     textAlign: "center",
-    opacity: 0.8,
   },
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFD2D2",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
-    gap: 8,
+    marginBottom: 10,
   },
   errorText: {
+    fontFamily: 'Montserrat_700Bold',
     color: "#A4161A",
-    fontWeight: "600",
     flex: 1,
   },
   successContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#D4EDDA",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
-    gap: 8,
+    marginBottom: 10,
   },
   successText: {
+    fontFamily: 'Montserrat_700Bold',
     color: "#155724",
-    fontWeight: "600",
     flex: 1,
   },
-  form: {
-    gap: 20,
-  },
-  inputGroup: {
-    gap: 8,
-  },
+  form: {},
+  inputGroup: {},
   label: {
-    fontWeight: "600",
+    fontFamily: 'Montserrat_700Bold',
   },
   input: {
     minHeight: 56,
     borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    fontFamily: 'Montserrat_400Regular',
   },
   button: {
     minHeight: 58,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
     elevation: 4,
-    marginTop: 10,
   },
   buttonText: {
-    fontWeight: "bold",
+    fontFamily: 'Montserrat_700Bold',
     color: "#FFFFFF",
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 5,
   },
   dividerLine: {
     flex: 1,
     height: 1,
   },
   dividerText: {
-    paddingHorizontal: 12,
+    fontFamily: 'Montserrat_400Regular',
     opacity: 0.7,
   },
   secondaryButton: {
@@ -270,12 +282,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
     borderWidth: 2,
     elevation: 2,
   },
   secondaryButtonText: {
-    fontWeight: "bold",
+    fontFamily: 'Montserrat_700Bold',
   },
 });

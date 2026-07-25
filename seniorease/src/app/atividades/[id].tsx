@@ -1,5 +1,4 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +13,11 @@ import {
 import { Activity, ActivityCategory } from "@/domain/entities/Activity";
 import { completeActivity, deleteActivity, getActivityById } from "@/services/activityStorage";
 import { useTheme } from "../../constants/theme";
+import {
+  useFonts,
+  Montserrat_400Regular,
+  Montserrat_700Bold,
+} from "@expo-google-fonts/montserrat";
 
 const categoryLabels: Record<ActivityCategory, string> = {
   saude: "Saúde",
@@ -25,12 +29,17 @@ const categoryLabels: Record<ActivityCategory, string> = {
 };
 
 export default function ActivityDetailsScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
   const params = useLocalSearchParams<{ id: string }>();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  let [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_700Bold,
+  });
 
   const activityId = Array.isArray(params.id) ? params.id[0] : params.id;
 
@@ -106,9 +115,13 @@ export default function ActivityDetailsScreen() {
     ]);
   }
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   if (loading) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background, padding: spacing.lg }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -116,41 +129,73 @@ export default function ActivityDetailsScreen() {
 
   if (!activity) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background, padding: spacing.lg }]}>
         <Text style={[styles.errorText, { fontSize: fontSize }]}>{errorMessage || "Atividade não encontrada."}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]}>
+      <View 
+        style={[
+          styles.card, 
+          { 
+            backgroundColor: colors.cardBackground, 
+            borderColor: colors.border,
+            borderRadius: borderRadius.lg,
+            padding: spacing.lg,
+            gap: spacing.sm
+          }
+        ]}
+      >
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.5 }]}>{activity.title}</Text>
         
-        <Text style={[styles.label, { color: colors.text, fontSize: fontSize * 0.9 }]}>
-          Categoria: <Text style={{ fontWeight: 'bold' }}>{categoryLabels[activity.category]}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
+          Categoria: <Text style={{ fontFamily: 'Montserrat_700Bold' }}>{categoryLabels[activity.category]}</Text>
         </Text>
         
-        <Text style={[styles.label, { color: colors.text, fontSize: fontSize * 0.9 }]}>
-          Data: <Text style={{ fontWeight: 'bold' }}>{activity.date} {activity.time ? `às ${activity.time}` : ""}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
+          Data: <Text style={{ fontFamily: 'Montserrat_700Bold' }}>{activity.date} {activity.time ? `às ${activity.time}` : ""}</Text>
         </Text>
 
         {activity.description ? (
-          <Text style={[styles.description, { color: colors.text, fontSize: fontSize }]}>{activity.description}</Text>
+          <Text style={[styles.description, { color: colors.text, fontSize: fontSize, marginTop: spacing.xs }]}>{activity.description}</Text>
         ) : null}
 
-        <Text style={[styles.status, { color: activity.status === 'concluida' ? '#18794E' : colors.primary, fontSize: fontSize }]}>
+        <Text style={[styles.status, { color: activity.status === 'concluida' ? '#18794E' : colors.primary, fontSize: fontSize, marginTop: spacing.xs }]}>
           Status: {activity.status.toUpperCase()}
         </Text>
       </View>
 
       {activity.status === "pendente" && (
-        <Pressable onPress={handleComplete} style={styles.completeButton}>
+        <Pressable 
+          onPress={handleComplete} 
+          style={[
+            styles.completeButton, 
+            { 
+              borderRadius: borderRadius.md, 
+              minHeight: 56,
+              marginTop: spacing.xs
+            }
+          ]}
+        >
           <Text style={[styles.buttonText, { fontSize: fontSize }]}>Concluir Atividade</Text>
         </Pressable>
       )}
 
-      <Pressable onPress={requestDelete} style={styles.deleteButton}>
+      <Pressable 
+        onPress={requestDelete} 
+        style={[
+          styles.deleteButton, 
+          { 
+            borderRadius: borderRadius.md, 
+            minHeight: 56,
+            backgroundColor: colors.cardBackground,
+            borderColor: "#A4161A"
+          }
+        ]}
+      >
         <Text style={[styles.deleteButtonText, { fontSize: fontSize }]}>Excluir Atividade</Text>
       </Pressable>
     </ScrollView>
@@ -158,16 +203,61 @@ export default function ActivityDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 16, maxWidth: 600, alignSelf: 'center', width: '100%', flexGrow: 1 },
-  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  card: { padding: 20, borderWidth: 2, borderRadius: 16, gap: 12 },
-  title: { fontWeight: "bold" },
-  label: { opacity: 0.8 },
-  description: { marginTop: 10 },
-  status: { fontWeight: "bold", marginTop: 5 },
-  completeButton: { minHeight: 56, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: "#18794E" },
-  deleteButton: { minHeight: 56, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: 2, borderColor: "#A4161A", backgroundColor: "#FFFFFF" },
-  buttonText: { color: "#FFFFFF", fontWeight: "bold" },
-  deleteButtonText: { color: "#A4161A", fontWeight: "bold" },
-  errorText: { color: "#A4161A", textAlign: "center" }
+  container: { 
+    maxWidth: 600, 
+    alignSelf: 'center', 
+    width: '100%', 
+    flexGrow: 1 
+  },
+  centerContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+  },
+  card: { 
+    borderWidth: 1.5, 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  label: { 
+    fontFamily: 'Montserrat_400Regular',
+    opacity: 0.8, 
+  },
+  description: { 
+    fontFamily: 'Montserrat_400Regular',
+  },
+  status: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  completeButton: { 
+    alignItems: "center", 
+    justifyContent: "center", 
+    backgroundColor: "#18794E",
+    elevation: 2,
+  },
+  deleteButton: { 
+    alignItems: "center", 
+    justifyContent: "center", 
+    borderWidth: 2, 
+    elevation: 2,
+  },
+  buttonText: { 
+    fontFamily: 'Montserrat_700Bold',
+    color: "#FFFFFF", 
+  },
+  deleteButtonText: { 
+    fontFamily: 'Montserrat_700Bold',
+    color: "#A4161A", 
+  },
+  errorText: { 
+    fontFamily: 'Montserrat_700Bold',
+    color: "#A4161A", 
+    textAlign: "center",
+  }
 });

@@ -13,7 +13,7 @@ import { useTheme } from "../constants/theme";
 import { registerUser } from "@/services/authStorage"; 
 
 export default function RegisterScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius, typography } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +36,6 @@ export default function RegisterScreen() {
 
     setErrorMessage("");
 
-  
     const result = await registerUser({
       name: name.trim(),
       email: email.trim(),
@@ -60,69 +59,76 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView 
-      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]} 
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg }]} 
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: colors.primary }]}>
-          <MaterialCommunityIcons name="account-plus" size={48} color="#FFFFFF" />
+      <View style={[styles.header, { marginBottom: spacing.lg }]}>
+        <View style={[styles.iconContainer, { backgroundColor: colors.primary, borderRadius: borderRadius.pill }]}>
+          <MaterialCommunityIcons name="account-plus" size={48} color={colors.buttonText} />
         </View>
-        <Text accessibilityRole="header" style={[styles.title, { color: colors.text, fontSize: fontSize * 1.8 }]}>
+        <Text 
+          accessibilityRole="header" 
+          style={[
+            styles.title, 
+            { color: colors.text, fontSize: fontSize * 1.8, fontFamily: typography.fontFamilyBold }
+          ]}
+        >
           Criar Conta
         </Text>
-        <Text style={[styles.subtitle, { color: colors.text, fontSize: fontSize * 0.9 }]}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: fontSize * 0.9, fontFamily: typography.fontFamilyRegular }]}>
           Preencha os dados abaixo para se cadastrar no SeniorEase.
         </Text>
       </View>
 
-      {/* Mensagem de Erro */}
       {errorMessage ? (
-        <View style={styles.errorContainer}>
-          <MaterialCommunityIcons name="alert-circle" size={20} color="#A4161A" />
-          <Text style={styles.errorText}>{errorMessage}</Text>
+        <View style={[styles.errorContainer, { backgroundColor: colors.error + '20', borderRadius: borderRadius.md, padding: spacing.sm, marginBottom: spacing.md }]}>
+          <MaterialCommunityIcons name="alert-circle" size={20} color={colors.error} />
+          <Text style={[styles.errorText, { color: colors.error, fontSize: fontSize }]}>{errorMessage}</Text>
         </View>
       ) : null}
 
-      {/* Mensagem de Sucesso */}
       {successMessage ? (
-        <View style={styles.successContainer}>
-          <MaterialCommunityIcons name="check-circle" size={20} color="#27ae60" />
-          <Text style={styles.successText}>{successMessage}</Text>
+        <View style={[styles.successContainer, { backgroundColor: colors.success + '20', borderRadius: borderRadius.md, padding: spacing.sm, marginBottom: spacing.md }]}>
+          <MaterialCommunityIcons name="check-circle" size={20} color={colors.success} />
+          <Text style={[styles.successText, { color: colors.success, fontSize: fontSize }]}>{successMessage}</Text>
         </View>
       ) : null}
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
+      <View style={[styles.form, { gap: spacing.md }]}>
+        <View style={[styles.inputGroup, { gap: spacing.xs / 2 }]}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize, fontFamily: typography.fontFamilyBold }]}>
             Nome Completo *
           </Text>
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Digite seu nome completo"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             style={[
               styles.input, 
               { 
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
-                borderColor: colors.border,
-                fontSize: fontSize 
+                borderColor: !name.trim() && errorMessage ? colors.error : colors.border,
+                fontSize: fontSize,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                fontFamily: typography.fontFamilyRegular
               }
             ]}
             accessibilityLabel="Campo de Nome Completo"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
+        <View style={[styles.inputGroup, { gap: spacing.xs / 2 }]}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize, fontFamily: typography.fontFamilyBold }]}>
             E-mail *
           </Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
             placeholder="exemplo@email.com"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
             keyboardType="email-address"
             style={[
@@ -130,82 +136,96 @@ export default function RegisterScreen() {
               { 
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
-                borderColor: colors.border,
-                fontSize: fontSize 
+                borderColor: !email.trim() && errorMessage ? colors.error : colors.border,
+                fontSize: fontSize,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                fontFamily: typography.fontFamilyRegular
               }
             ]}
             accessibilityLabel="Campo de E-mail"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
+        <View style={[styles.inputGroup, { gap: spacing.xs / 2 }]}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize, fontFamily: typography.fontFamilyBold }]}>
             Senha *
           </Text>
           <TextInput
             value={password}
             onChangeText={setPassword}
             placeholder="Crie uma senha segura"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             secureTextEntry
             style={[
               styles.input, 
               { 
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
-                borderColor: colors.border,
-                fontSize: fontSize 
+                borderColor: !password.trim() && errorMessage ? colors.error : colors.border,
+                fontSize: fontSize,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                fontFamily: typography.fontFamilyRegular
               }
             ]}
             accessibilityLabel="Campo de Senha"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>
+        <View style={[styles.inputGroup, { gap: spacing.xs / 2 }]}>
+          <Text style={[styles.label, { color: colors.text, fontSize: fontSize, fontFamily: typography.fontFamilyBold }]}>
             Confirme a Senha *
           </Text>
           <TextInput
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="Digite a senha novamente"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.textSecondary}
             secureTextEntry
             style={[
               styles.input, 
               { 
                 backgroundColor: colors.cardBackground, 
                 color: colors.text, 
-                borderColor: colors.border,
-                fontSize: fontSize 
+                borderColor: (!confirmPassword.trim() || password !== confirmPassword) && errorMessage ? colors.error : colors.border,
+                fontSize: fontSize,
+                borderRadius: borderRadius.md,
+                paddingHorizontal: spacing.md,
+                fontFamily: typography.fontFamilyRegular
               }
             ]}
             accessibilityLabel="Campo de Confirmação de Senha"
           />
         </View>
 
-        {/* Botão Principal de Cadastrar */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Botão Finalizar Cadastro"
           onPress={handleRegister}
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button, 
+            { 
+              backgroundColor: colors.primary, 
+              borderRadius: borderRadius.md, 
+              marginTop: spacing.sm 
+            }
+          ]}
         >
-          <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
-          <Text style={[styles.buttonText, { fontSize: fontSize * 1.1 }]}>
+          <MaterialCommunityIcons name="check-circle" size={24} color={colors.buttonText} />
+          <Text style={[styles.buttonText, { fontSize: fontSize * 1.1, color: colors.buttonText, fontFamily: typography.fontFamilyBold }]}>
             Cadastrar
           </Text>
         </Pressable>
 
-        {/* Botão para voltar ao Login */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Botão Voltar para o Login"
           onPress={handleNavigateToLogin}
-          style={styles.backButton}
+          style={[styles.backButton, { paddingVertical: spacing.sm, marginTop: spacing.xs }]}
         >
           <MaterialCommunityIcons name="arrow-left" size={20} color={colors.primary} />
-          <Text style={[styles.backButtonText, { color: colors.primary, fontSize: fontSize }]}>
+          <Text style={[styles.backButtonText, { color: colors.primary, fontSize: fontSize, fontFamily: typography.fontFamilyBold }]}>
             Já tem uma conta? Faça login
           </Text>
         </Pressable>
@@ -216,7 +236,6 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
     flexGrow: 1,
     maxWidth: 600,
     alignSelf: 'center',
@@ -225,68 +244,46 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 24,
   },
   iconContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
     elevation: 4,
   },
   title: {
-    fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     textAlign: "center",
-    opacity: 0.8,
   },
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFD2D2",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
     gap: 8,
   },
   errorText: {
-    color: "#A4161A",
     fontWeight: "600",
     flex: 1,
   },
   successContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#D4EDDA",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
     gap: 8,
   },
   successText: {
-    color: "#155724",
     fontWeight: "600",
     flex: 1,
   },
-  form: {
-    gap: 16,
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  label: {
-    fontWeight: "600",
-  },
+  form: {},
+  inputGroup: {},
+  label: {},
   input: {
     minHeight: 56,
     borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 16,
   },
   button: {
     minHeight: 58,
@@ -294,24 +291,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 16,
     elevation: 4,
-    marginTop: 10,
   },
-  buttonText: {
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
+  buttonText: {},
   backButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 12,
-    marginTop: 5,
   },
   backButtonText: {
-    fontWeight: "600",
     textAlign: 'center',
   },
 });

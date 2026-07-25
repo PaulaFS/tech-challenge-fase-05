@@ -10,6 +10,11 @@ import {
   View,
 } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  useFonts,
+  Montserrat_400Regular,
+  Montserrat_700Bold,
+} from '@expo-google-fonts/montserrat';
 import { Activity, ActivityCategory } from "@/domain/entities/Activity";
 import { getActivities } from "@/services/activityStorage";
 import { useTheme } from "../../constants/theme";
@@ -23,7 +28,7 @@ const categoryLabels: Record<ActivityCategory, string> = {
   outros: "Outros",
 };
 
-const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) => {
+const HoverButton = ({ onPress, icon, text, fontSize, color, textColor, borderRadius, spacing }: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isHovered, setIsHovered] = useState(false);
 
@@ -43,7 +48,16 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
         onHoverIn={handleHoverIn}
         onHoverOut={handleHoverOut}
         onPress={onPress}
-        style={[styles.actionButton, { backgroundColor: color }, isHovered && { opacity: 0.9 }]}
+        style={[
+          styles.actionButton, 
+          { 
+            backgroundColor: color, 
+            borderRadius: borderRadius.lg,
+            paddingHorizontal: spacing.lg,
+            gap: spacing.sm
+          }, 
+          isHovered && { opacity: 0.9 }
+        ]}
         accessibilityRole="button"
         accessibilityLabel={text}
       >
@@ -57,10 +71,15 @@ const HoverButton = ({ onPress, icon, text, fontSize, color, textColor }: any) =
 };
 
 export default function ActivitiesScreen() {
-  const { fontSize, colors } = useTheme();
+  const { fontSize, colors, spacing, borderRadius } = useTheme();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  let [fontsLoaded] = useFonts({
+    Montserrat_400Regular,
+    Montserrat_700Bold,
+  });
 
   const loadActivities = useCallback(async () => {
     try {
@@ -96,9 +115,13 @@ export default function ActivitiesScreen() {
     }, [loadActivities]),
   );
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   if (loading) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background, padding: spacing.lg }]}>
         <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Carregando atividades" />
         <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize }]}>
           Carregando suas atividades...
@@ -108,18 +131,17 @@ export default function ActivitiesScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.header, { marginBottom: spacing.xs }]}>
         <Text accessibilityRole="header" style={[styles.title, { color: colors.text, fontSize: fontSize * 1.6 }]}>
           Minhas atividades
         </Text>
-        <Text style={[styles.subtitle, { color: colors.text, fontSize: fontSize * 0.9 }]}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
           {activities.length === 0 ? "Você não possui atividades pendentes." : `${activities.length} atividade(s) pendente(s)`}
         </Text>
       </View>
 
-      {/* Botão adicionar nova atividade */}
-      <View style={styles.topButtonWrapper}>
+      <View style={{ marginBottom: spacing.xs }}>
         <HoverButton
           onPress={() => router.push("/atividades/nova")}
           icon="plus"
@@ -127,11 +149,12 @@ export default function ActivitiesScreen() {
           fontSize={fontSize}
           color={colors.primary}
           textColor={colors.buttonText}
+          borderRadius={borderRadius}
+          spacing={spacing}
         />
       </View>
       
-      {/* Botão ver histórico de atividades com ícone corrigido */}
-      <View style={styles.topButtonWrapper}>
+      <View style={{ marginBottom: spacing.sm }}>
         <HoverButton
           onPress={() => router.push("/historico")}
           icon="history"
@@ -139,24 +162,34 @@ export default function ActivitiesScreen() {
           fontSize={fontSize}
           color={colors.primary}
           textColor={colors.buttonText}
+          borderRadius={borderRadius}
+          spacing={spacing}
         />
       </View>
 
       {errorMessage ? (
         <View
           accessibilityRole="alert"
-          style={styles.errorContainer}
+          style={[
+            styles.errorContainer,
+            {
+              borderRadius: borderRadius.md,
+              padding: spacing.lg,
+              gap: spacing.md,
+            }
+          ]}
         >
-          <Text style={styles.errorText}>
+          <Text style={[styles.errorText, { fontSize: fontSize }]}>
             {errorMessage}
           </Text>
 
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Tentar carregar atividades novamente"
             onPress={() => void loadActivities()}
-            style={styles.retryButton}
+            style={[styles.retryButton, { borderRadius: borderRadius.md }]}
           >
-            <Text style={styles.retryButtonText}>
+            <Text style={[styles.retryButtonText, { fontSize: fontSize * 1.1 }]}>
               Tentar novamente
             </Text>
           </Pressable>
@@ -164,24 +197,33 @@ export default function ActivitiesScreen() {
       ) : null}
 
       {activities.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View style={[styles.emptyContainer, { marginVertical: spacing.xl, gap: spacing.md }]}>
           <MaterialCommunityIcons name="clipboard-text-outline" size={fontSize * 2.5} color={colors.primary} />
-          <Text style={[styles.emptyText, { color: colors.text, fontSize: fontSize }]}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary || colors.text, fontSize: fontSize }]}>
             Sua lista de pendências está vazia no momento.
           </Text>
         </View>
       ) : (
-        <View style={styles.list}>
+        <View style={[styles.list, { gap: spacing.md }]}>
           {activities.map((activity) => (
             <Pressable
               key={activity.id}
               accessibilityRole="button"
               accessibilityLabel={`Abrir atividade ${activity.title}`}
               onPress={() => router.push(`/atividades/${activity.id}` as any)}
-              style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+              style={[
+                styles.card, 
+                { 
+                  backgroundColor: colors.cardBackground, 
+                  borderColor: colors.border,
+                  borderRadius: borderRadius.lg,
+                  padding: spacing.lg,
+                  gap: spacing.sm
+                }
+              ]}
             >
               <View style={styles.cardHeader}>
-                <View style={[styles.categoryBadge, { backgroundColor: colors.primary }]}>
+                <View style={[styles.categoryBadge, { backgroundColor: colors.primary, borderRadius: borderRadius.md, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs }]}>
                   <Text style={[styles.categoryText, { fontSize: fontSize * 0.8 }]}>
                     {categoryLabels[activity.category]}
                   </Text>
@@ -191,7 +233,7 @@ export default function ActivitiesScreen() {
               <Text style={[styles.activityTitle, { color: colors.text, fontSize: fontSize }]}>
                 {activity.title}
               </Text>
-              <Text style={[styles.activityDate, { color: colors.text, fontSize: fontSize * 0.8 }]}>
+              <Text style={[styles.activityDate, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.8 }]}>
                 📅 {activity.date} {activity.time ? `às ${activity.time}` : ""}
               </Text>
             </Pressable>
@@ -212,23 +254,35 @@ export default function ActivitiesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, flexGrow: 1, maxWidth: 600, alignSelf: 'center', width: '100%' },
-  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
-  loadingText: { marginTop: 12, fontWeight: '600' },
-  header: { marginBottom: 15 },
-  title: { fontWeight: "bold", marginBottom: 5 },
-  subtitle: { opacity: 0.8 },
-  topButtonWrapper: {
-    marginBottom: 20,
+  container: { 
+    flexGrow: 1, 
+    maxWidth: 600, 
+    alignSelf: 'center', 
+    width: '100%' 
+  },
+  centerContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+  },
+  loadingText: { 
+    fontFamily: 'Montserrat_700Bold',
+    marginTop: 12, 
+  },
+  header: {},
+  title: { 
+    fontFamily: 'Montserrat_700Bold',
+    marginBottom: 5, 
+  },
+  subtitle: { 
+    fontFamily: 'Montserrat_400Regular',
+    opacity: 0.8, 
   },
   actionButton: {
     flexDirection: "row",
     minHeight: 56,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -236,37 +290,63 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionButtonText: {
-    fontWeight: '700',
+    fontFamily: 'Montserrat_700Bold',
   },
-  errorText: { color: "#A4161A", fontSize: 16, marginBottom: 15, textAlign: 'center' },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 20, gap: 10 },
-  emptyText: { textAlign: 'center', opacity: 0.8 },
-  list: { gap: 16 },
-  card: { gap: 10, padding: 18, borderWidth: 2, borderRadius: 16 },
-  cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  categoryBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
-  categoryText: { fontWeight: "700", color: "#FFFFFF" },
-  pendingStatus: { fontWeight: "700" },
-  activityTitle: { fontWeight: "bold" },
-  activityDate: { opacity: 0.8 },
+  errorText: { 
+    fontFamily: 'Montserrat_700Bold',
+    color: "#A4161A", 
+    textAlign: 'center', 
+  },
+  emptyContainer: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+  },
+  emptyText: { 
+    fontFamily: 'Montserrat_400Regular',
+    textAlign: 'center', 
+  },
+  list: {},
+  card: { 
+    borderWidth: 1.5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardHeader: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+  },
+  categoryBadge: {},
+  categoryText: { 
+    fontFamily: 'Montserrat_700Bold', 
+    color: "#FFFFFF", 
+  },
+  pendingStatus: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  activityTitle: { 
+    fontFamily: 'Montserrat_700Bold', 
+  },
+  activityDate: { 
+    fontFamily: 'Montserrat_400Regular',
+    opacity: 0.8, 
+  },
   errorContainer: {
-    gap: 16,
-    padding: 18,
     borderWidth: 2,
     borderColor: "#A4161A",
-    borderRadius: 12,
     backgroundColor: "#FFF0F0",
   },
   retryButton: {
     minHeight: 52,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 10,
     backgroundColor: "#A4161A",
   },
   retryButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontFamily: 'Montserrat_700Bold',
     color: "#FFFFFF",
   },
 });
