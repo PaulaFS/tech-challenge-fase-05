@@ -10,6 +10,7 @@ import {
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from "../constants/theme";
+import { registerUser } from "@/services/authStorage"; 
 
 export default function RegisterScreen() {
   const { fontSize, colors } = useTheme();
@@ -18,10 +19,12 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); 
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    setSuccessMessage("");
     
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMessage("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
@@ -32,8 +35,23 @@ export default function RegisterScreen() {
     }
 
     setErrorMessage("");
-    
-    router.push("/login");
+
+  
+    const result = await registerUser({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+    });
+
+    if (!result.success) {
+      setErrorMessage(result.message);
+      return;
+    }
+
+    setSuccessMessage(result.message);
+    setTimeout(() => {
+      router.push("/login");
+    }, 1500); 
   };
 
   const handleNavigateToLogin = () => {
@@ -57,10 +75,19 @@ export default function RegisterScreen() {
         </Text>
       </View>
 
+      {/* Mensagem de Erro */}
       {errorMessage ? (
         <View style={styles.errorContainer}>
           <MaterialCommunityIcons name="alert-circle" size={20} color="#A4161A" />
           <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
+      ) : null}
+
+      {/* Mensagem de Sucesso */}
+      {successMessage ? (
+        <View style={styles.successContainer}>
+          <MaterialCommunityIcons name="check-circle" size={20} color="#27ae60" />
+          <Text style={styles.successText}>{successMessage}</Text>
         </View>
       ) : null}
 
@@ -229,6 +256,20 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#A4161A",
+    fontWeight: "600",
+    flex: 1,
+  },
+  successContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#D4EDDA",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
+  },
+  successText: {
+    color: "#155724",
     fontWeight: "600",
     flex: 1,
   },
