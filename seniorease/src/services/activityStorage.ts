@@ -1,49 +1,65 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { Activity } from "@/domain/entities/Activity";
 import { STORAGE_KEYS } from "@/data/storage/storageKeys";
 
+async function getCurrentUserId(): Promise<string> {
+  try {
+    const loggedUserJson = await AsyncStorage.getItem(STORAGE_KEYS.loggedUser);
+    if (!loggedUserJson) return "";
+    const user = JSON.parse(loggedUserJson);
+    return user.id || "";
+  } catch {
+    return "";
+  }
+}
+
 export async function getActivities(): Promise<Activity[]> {
-  const storedActivities = await AsyncStorage.getItem(
-    STORAGE_KEYS.activities,
-  );
+  const currentUserId = await getCurrentUserId();
+  const storedActivities = await AsyncStorage.getItem(STORAGE_KEYS.activities);
 
   if (!storedActivities) {
     return [];
   }
 
   try {
-    return JSON.parse(storedActivities) as Activity[];
+    const allActivities: Activity[] = JSON.parse(storedActivities);
+    return allActivities.filter((activity) => activity.userId === currentUserId);
   } catch {
     return [];
   }
 }
 
-async function saveActivities(
-  activities: Activity[],
-): Promise<void> {
+async function saveActivities(activities: Activity[]): Promise<void> {
+  const currentUserId = await getCurrentUserId();
+  const storedActivities = await AsyncStorage.getItem(STORAGE_KEYS.activities);
+  const allActivities: Activity[] = storedActivities ? JSON.parse(storedActivities) : [];
+
+  const otherUsersActivities = allActivities.filter((activity) => activity.userId !== currentUserId);
+  const updatedGlobalActivities = [...otherUsersActivities, ...activities];
+
   await AsyncStorage.setItem(
     STORAGE_KEYS.activities,
-    JSON.stringify(activities),
+    JSON.stringify(updatedGlobalActivities),
   );
 }
 
-export async function getActivityById(
-  id: string,
-): Promise<Activity | null> {
+export async function getActivityById(id: string): Promise<Activity | null> {
   const activities = await getActivities();
-
-  return (
-    activities.find((activity) => activity.id === id) ?? null
-  );
+  return activities.find((activity) => activity.id === id) ?? null;
 }
 
 export async function saveActivity(
-  activity: Activity,
+  activityData: Omit<Activity, "userId">,
 ): Promise<void> {
+  const currentUserId = await getCurrentUserId();
   const activities = await getActivities();
 
-  await saveActivities([...activities, activity]);
+  const newActivity: Activity = {
+    ...activityData,
+    userId: currentUserId,
+  };
+
+  await saveActivities([...activities, newActivity]);
 }
 
 export async function updateActivity(

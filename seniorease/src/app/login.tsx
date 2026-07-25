@@ -10,27 +10,39 @@ import {
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from "../constants/theme";
-
+import { loginUser } from "@/services/authStorage"; // <-- Importado do seu serviço de auth
 
 export default function LoginScreen() {
   const { fontSize, colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // Feedback visual de sucesso
 
-  const handleLogin = () => {
-    if (!email || !password) {
+  const handleLogin = async () => {
+    setSuccessMessage("");
+
+    if (!email.trim() || !password.trim()) {
       setErrorMessage("Por favor, preencha o e-mail e a senha.");
       return;
     }
 
     setErrorMessage("");
-    // Redireciona para a tela inicial (index)
-    router.replace("/");
+
+    const result = await loginUser(email.trim(), password);
+
+    if (!result.success) {
+      setErrorMessage(result.message);
+      return;
+    }
+
+    setSuccessMessage(result.message);
+    setTimeout(() => {
+      router.replace("/"); 
+    }, 1000);
   };
 
   const handleNavigateToRegister = () => {
-    // Redireciona para a tela de cadastro (crie a rota app/cadastro.tsx se necessário)
     router.push("/cadastro");
   };
 
@@ -51,10 +63,19 @@ export default function LoginScreen() {
         </Text>
       </View>
 
+      {/* Mensagem de Erro */}
       {errorMessage ? (
         <View style={styles.errorContainer}>
           <MaterialCommunityIcons name="alert-circle" size={20} color="#A4161A" />
           <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
+      ) : null}
+
+      {/* Mensagem de Sucesso */}
+      {successMessage ? (
+        <View style={styles.successContainer}>
+          <MaterialCommunityIcons name="check-circle" size={20} color="#27ae60" />
+          <Text style={styles.successText}>{successMessage}</Text>
         </View>
       ) : null}
 
@@ -185,6 +206,20 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#A4161A",
+    fontWeight: "600",
+    flex: 1,
+  },
+  successContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#D4EDDA",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
+  },
+  successText: {
+    color: "#155724",
     fontWeight: "600",
     flex: 1,
   },
