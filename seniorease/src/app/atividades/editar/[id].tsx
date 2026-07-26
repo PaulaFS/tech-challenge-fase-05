@@ -43,6 +43,10 @@ import {
 
 import { useTheme } from "@/constants/theme";
 
+import {
+    useAccessibility,
+} from "@/contexts/AccessibilityContext";
+
 const categories: Array<{
     value: ActivityCategory;
     label: string;
@@ -65,6 +69,9 @@ export default function EditActivityScreen() {
         spacing,
         borderRadius,
     } = useTheme();
+
+    const { isBasicMode } =
+        useAccessibility();
 
     const params =
         useLocalSearchParams<{ id: string }>();
@@ -90,6 +97,11 @@ export default function EditActivityScreen() {
 
     const [saving, setSaving] =
         useState(false);
+
+    const [
+        hadAdvancedInformationInitially,
+        setHadAdvancedInformationInitially,
+    ] = useState(false);
 
     const [
         hasAttemptedSave,
@@ -145,6 +157,17 @@ export default function EditActivityScreen() {
                 setDate(storedActivity.date);
                 setTime(storedActivity.time);
                 setCategory(storedActivity.category);
+
+                setHadAdvancedInformationInitially(
+                    Boolean(
+                        storedActivity.description.trim(),
+                    ) ||
+                    Boolean(
+                        storedActivity.time.trim(),
+                    ) ||
+                    storedActivity.category !==
+                    "outros",
+                );
             } catch {
                 setErrorMessage(
                     "Não foi possível carregar a atividade.",
@@ -386,6 +409,10 @@ export default function EditActivityScreen() {
         hasAttemptedSave &&
         !isValidTime(time);
 
+    const shouldShowAdvancedFields =
+        !isBasicMode ||
+        hadAdvancedInformationInitially;
+
     if (!fontsLoaded || loading) {
         return (
             <View
@@ -466,6 +493,46 @@ export default function EditActivityScreen() {
                     Editar atividade
                 </Text>
 
+                {isBasicMode &&
+                    hadAdvancedInformationInitially && (
+                        <View
+                            style={[
+                                styles.informationBox,
+                                {
+                                    backgroundColor:
+                                        colors.cardBackground,
+                                    borderColor:
+                                        colors.primary,
+                                    borderRadius:
+                                        borderRadius.md,
+                                    padding: spacing.md,
+                                    gap: spacing.sm,
+                                },
+                            ]}
+                        >
+                            <MaterialCommunityIcons
+                                name="information-outline"
+                                size={fontSize * 1.5}
+                                color={colors.primary}
+                            />
+
+                            <Text
+                                style={[
+                                    styles.informationText,
+                                    {
+                                        color: colors.text,
+                                        fontSize,
+                                    },
+                                ]}
+                            >
+                                Esta atividade possui informações
+                                adicionais. Elas estão visíveis
+                                para que você possa conferi-las
+                                antes de salvar.
+                            </Text>
+                        </View>
+                    )}
+
                 <View
                     style={[
                         styles.field,
@@ -516,53 +583,55 @@ export default function EditActivityScreen() {
                     />
                 </View>
 
-                <View
-                    style={[
-                        styles.field,
-                        {
-                            gap: spacing.xs,
-                        },
-                    ]}
-                >
-                    <Text
+                {shouldShowAdvancedFields && (
+                    <View
                         style={[
-                            styles.label,
+                            styles.field,
                             {
-                                color: colors.text,
-                                fontSize,
+                                gap: spacing.xs,
                             },
                         ]}
                     >
-                        Descrição (Opcional)
-                    </Text>
+                        <Text
+                            style={[
+                                styles.label,
+                                {
+                                    color: colors.text,
+                                    fontSize,
+                                },
+                            ]}
+                        >
+                            Descrição (Opcional)
+                        </Text>
 
-                    <TextInput
-                        value={description}
-                        onChangeText={setDescription}
-                        placeholder="Detalhes ou anotações importantes..."
-                        placeholderTextColor="#888"
-                        multiline
-                        numberOfLines={3}
-                        style={[
-                            styles.input,
-                            styles.textArea,
-                            {
-                                backgroundColor:
-                                    colors.cardBackground,
-                                color: colors.text,
-                                borderColor:
-                                    colors.border,
-                                borderRadius:
-                                    borderRadius.md,
-                                paddingHorizontal:
-                                    spacing.md,
-                                paddingVertical:
-                                    spacing.sm,
-                                fontSize,
-                            },
-                        ]}
-                    />
-                </View>
+                        <TextInput
+                            value={description}
+                            onChangeText={setDescription}
+                            placeholder="Detalhes ou anotações importantes..."
+                            placeholderTextColor="#888"
+                            multiline
+                            numberOfLines={3}
+                            style={[
+                                styles.input,
+                                styles.textArea,
+                                {
+                                    backgroundColor:
+                                        colors.cardBackground,
+                                    color: colors.text,
+                                    borderColor:
+                                        colors.border,
+                                    borderRadius:
+                                        borderRadius.md,
+                                    paddingHorizontal:
+                                        spacing.md,
+                                    paddingVertical:
+                                        spacing.sm,
+                                    fontSize,
+                                },
+                            ]}
+                        />
+                    </View>
+                )}
 
                 <View
                     style={[
@@ -616,135 +685,142 @@ export default function EditActivityScreen() {
                     />
                 </View>
 
-                <View
-                    style={[
-                        styles.field,
-                        {
-                            gap: spacing.xs,
-                        },
-                    ]}
-                >
-                    <Text
-                        style={[
-                            styles.label,
-                            {
-                                color: isTimeError
-                                    ? "#A4161A"
-                                    : colors.text,
-                                fontSize,
-                            },
-                        ]}
-                    >
-                        Horário (Opcional){" "}
-                        {isTimeError &&
-                            "(Inválido)"}
-                    </Text>
-
-                    <TextInput
-                        value={time}
-                        onChangeText={handleTimeChange}
-                        placeholder="HH:MM"
-                        placeholderTextColor="#888"
-                        keyboardType="numeric"
-                        maxLength={5}
-                        style={[
-                            styles.input,
-                            {
-                                backgroundColor:
-                                    colors.cardBackground,
-                                color: colors.text,
-                                borderColor: isTimeError
-                                    ? "#A4161A"
-                                    : colors.border,
-                                borderRadius:
-                                    borderRadius.md,
-                                paddingHorizontal:
-                                    spacing.md,
-                                fontSize,
-                            },
-                            isTimeError &&
-                            styles.inputErrorBackground,
-                        ]}
-                    />
-                </View>
-
-                <View
-                    style={[
-                        styles.field,
-                        {
-                            gap: spacing.xs,
-                        },
-                    ]}
-                >
-                    <Text
-                        style={[
-                            styles.label,
-                            {
-                                color: colors.text,
-                                fontSize,
-                            },
-                        ]}
-                    >
-                        Categoria
-                    </Text>
-
+                {shouldShowAdvancedFields && (
                     <View
                         style={[
-                            styles.categories,
+                            styles.field,
                             {
-                                gap: spacing.sm,
+                                gap: spacing.xs,
                             },
                         ]}
                     >
-                        {categories.map((item) => {
-                            const selected =
-                                category === item.value;
+                        <Text
+                            style={[
+                                styles.label,
+                                {
+                                    color: isTimeError
+                                        ? "#A4161A"
+                                        : colors.text,
+                                    fontSize,
+                                },
+                            ]}
+                        >
+                            Horário (Opcional){" "}
+                            {isTimeError &&
+                                "(Inválido)"}
+                        </Text>
 
-                            return (
-                                <Pressable
-                                    key={item.value}
-                                    onPress={() =>
-                                        setCategory(
-                                            item.value,
-                                        )
-                                    }
-                                    style={[
-                                        styles.categoryButton,
-                                        {
-                                            borderColor:
-                                                colors.primary,
-                                            borderRadius:
-                                                borderRadius.md,
-                                            paddingHorizontal:
-                                                spacing.md,
-                                            paddingVertical:
-                                                spacing.sm,
-                                        },
-                                        selected && {
-                                            backgroundColor:
-                                                colors.primary,
-                                        },
-                                    ]}
-                                >
-                                    <Text
+                        <TextInput
+                            value={time}
+                            onChangeText={handleTimeChange}
+                            placeholder="HH:MM"
+                            placeholderTextColor="#888"
+                            keyboardType="numeric"
+                            maxLength={5}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor:
+                                        colors.cardBackground,
+                                    color: colors.text,
+                                    borderColor: isTimeError
+                                        ? "#A4161A"
+                                        : colors.border,
+                                    borderRadius:
+                                        borderRadius.md,
+                                    paddingHorizontal:
+                                        spacing.md,
+                                    fontSize,
+                                },
+                                isTimeError &&
+                                styles.inputErrorBackground,
+                            ]}
+                        />
+                    </View>
+                )}
+
+                {shouldShowAdvancedFields && (
+                    <View
+                        style={[
+                            styles.field,
+                            {
+                                gap: spacing.xs,
+                            },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.label,
+                                {
+                                    color: colors.text,
+                                    fontSize,
+                                },
+                            ]}
+                        >
+                            Categoria
+                        </Text>
+
+                        <View
+                            style={[
+                                styles.categories,
+                                {
+                                    gap: spacing.sm,
+                                },
+                            ]}
+                        >
+                            {categories.map((item) => {
+                                const selected =
+                                    category === item.value;
+
+                                return (
+                                    <Pressable
+                                        key={item.value}
+                                        onPress={() =>
+                                            setCategory(item.value)
+                                        }
+                                        accessibilityRole="button"
+                                        accessibilityState={{
+                                            selected,
+                                        }}
+                                        accessibilityLabel={`Selecionar categoria ${item.label}`}
                                         style={[
-                                            styles.categoryText,
+                                            styles.categoryButton,
                                             {
-                                                color: selected
-                                                    ? "#FFFFFF"
-                                                    : colors.primary,
-                                                fontSize:
-                                                    fontSize * 0.9,
+                                                borderColor:
+                                                    colors.primary,
+                                                borderRadius:
+                                                    borderRadius.md,
+                                                paddingHorizontal:
+                                                    spacing.md,
+                                                paddingVertical:
+                                                    spacing.sm,
+                                            },
+                                            selected && {
+                                                backgroundColor:
+                                                    colors.primary,
                                             },
                                         ]}
                                     >
-                                        {item.label}
-                                    </Text>
-                                </Pressable>
-                            );
-                        })}
+                                        <Text
+                                            style={[
+                                                styles.categoryText,
+                                                {
+                                                    color: selected
+                                                        ? "#FFFFFF"
+                                                        : colors.primary,
+                                                    fontSize:
+                                                        fontSize * 0.9,
+                                                },
+                                            ]}
+                                        >
+                                            {item.label}
+                                        </Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
                     </View>
-                </View>
+                )}
 
                 <Pressable
                     onPress={handleSave}
@@ -1008,5 +1084,18 @@ const styles = StyleSheet.create({
 
     modalButtonText: {
         fontFamily: "Montserrat_700Bold",
+    },
+    informationBox: {
+        width: "100%",
+        borderWidth: 2,
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    informationText: {
+        flex: 1,
+        fontFamily:
+            "Montserrat_400Regular",
+        lineHeight: 24,
     },
 });

@@ -36,6 +36,7 @@ interface AccessibilityContextData {
   loading: boolean;
   fontScale: number;
   spacingScale: number;
+  isBasicMode: boolean;
   colors: AccessibilityColors;
   updateSettings: (
     values: Partial<AccessibilitySettings>,
@@ -113,6 +114,9 @@ export function AccessibilityProvider({
   const spacingScale =
     settings.spacing === "amplo" ? 1.3 : 1;
 
+  const isBasicMode =
+    settings.interfaceMode === "basico";
+
   const colors = useMemo<AccessibilityColors>(() => {
     if (settings.highContrast) {
       return {
@@ -147,6 +151,7 @@ export function AccessibilityProvider({
       loading,
       fontScale,
       spacingScale,
+      isBasicMode,
       colors,
       updateSettings,
       resetSettings,

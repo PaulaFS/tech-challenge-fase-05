@@ -19,8 +19,11 @@ import {
 } from '@expo-google-fonts/montserrat';
 import { Activity, ActivityCategory } from "@/domain/entities/Activity";
 import { saveActivity } from "@/services/activityStorage";
-import { getLoggedUser } from "@/services/authStorage"; 
+import { getLoggedUser } from "@/services/authStorage";
 import { useTheme } from "../../constants/theme";
+import {
+  useAccessibility,
+} from "@/contexts/AccessibilityContext";
 
 const categories: Array<{ value: ActivityCategory; label: string }> = [
   { value: "saude", label: "Saúde" },
@@ -33,11 +36,13 @@ const categories: Array<{ value: ActivityCategory; label: string }> = [
 
 export default function NewActivityScreen() {
   const { fontSize, colors, spacing, borderRadius } = useTheme();
+  const { isBasicMode } =
+    useAccessibility();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [category, setCategory] = useState<ActivityCategory>("saude");
+  const [category, setCategory] = useState<ActivityCategory>("outros");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -138,18 +143,18 @@ export default function NewActivityScreen() {
 
       const newActivity: Activity = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        userId, 
+        userId,
         title: title.trim(),
         description: description.trim(),
         date: date.trim(),
         time: time.trim(),
         category,
         status: "pendente",
-        createdAt: new Date().toISOString(), 
+        createdAt: new Date().toISOString(),
       };
 
       await saveActivity(newActivity);
-      
+
       setIsSuccessModal(true);
       setModalMessage("A atividade foi salva com sucesso.");
       setModalVisible(true);
@@ -182,6 +187,41 @@ export default function NewActivityScreen() {
       <ScrollView contentContainerStyle={[styles.container, { padding: spacing.lg, gap: spacing.md }]}>
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.6 }]}>Nova Atividade</Text>
 
+        {isBasicMode && (
+          <View
+            style={[
+              styles.basicModeMessage,
+              {
+                backgroundColor:
+                  colors.cardBackground,
+                borderColor: colors.primary,
+                borderRadius: borderRadius.md,
+                padding: spacing.md,
+              },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="information-outline"
+              size={fontSize * 1.5}
+              color={colors.primary}
+            />
+
+            <Text
+              style={[
+                styles.basicModeMessageText,
+                {
+                  color: colors.text,
+                  fontSize,
+                },
+              ]}
+            >
+              Preencha o nome e a data da
+              atividade. Essas são as informações
+              necessárias para continuar.
+            </Text>
+          </View>
+        )}
+
         <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: isTitleError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
             Título * {isTitleError && "(Obrigatório)"}
@@ -192,44 +232,66 @@ export default function NewActivityScreen() {
             placeholder="Ex: Consulta médica"
             placeholderTextColor="#888"
             style={[
-              styles.input, 
-              { 
-                backgroundColor: colors.cardBackground, 
-                color: colors.text, 
-                borderColor: isTitleError ? "#A4161A" : colors.border, 
+              styles.input,
+              {
+                backgroundColor: colors.cardBackground,
+                color: colors.text,
+                borderColor: isTitleError ? "#A4161A" : colors.border,
                 borderRadius: borderRadius.md,
                 paddingHorizontal: spacing.md,
-                fontSize: fontSize 
+                fontSize: fontSize
               },
               isTitleError && styles.inputErrorBackground
             ]}
           />
         </View>
 
-        <View style={[styles.field, { gap: spacing.xs }]}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Descrição (Opcional)</Text>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Detalhes ou anotações importantes..."
-            placeholderTextColor="#888"
-            multiline
-            numberOfLines={3}
+        {!isBasicMode && (
+          <View
             style={[
-              styles.input, 
-              styles.textArea, 
-              { 
-                backgroundColor: colors.cardBackground, 
-                color: colors.text, 
-                borderColor: colors.border, 
-                borderRadius: borderRadius.md,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
-                fontSize: fontSize 
-              }
+              styles.field,
+              { gap: spacing.xs },
             ]}
-          />
-        </View>
+          >
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: colors.text,
+                  fontSize,
+                },
+              ]}
+            >
+              Descrição (Opcional)
+            </Text>
+
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Detalhes ou anotações importantes..."
+              placeholderTextColor="#888"
+              multiline
+              numberOfLines={3}
+              style={[
+                styles.input,
+                styles.textArea,
+                {
+                  backgroundColor:
+                    colors.cardBackground,
+                  color: colors.text,
+                  borderColor: colors.border,
+                  borderRadius:
+                    borderRadius.md,
+                  paddingHorizontal:
+                    spacing.md,
+                  paddingVertical:
+                    spacing.sm,
+                  fontSize,
+                },
+              ]}
+            />
+          </View>
+        )}
 
         <View style={[styles.field, { gap: spacing.xs }]}>
           <Text style={[styles.label, { color: isDateError ? "#A4161A" : colors.text, fontSize: fontSize }]}>
@@ -243,75 +305,141 @@ export default function NewActivityScreen() {
             keyboardType="numeric"
             maxLength={10}
             style={[
-              styles.input, 
-              { 
-                backgroundColor: colors.cardBackground, 
-                color: colors.text, 
-                borderColor: isDateError ? "#A4161A" : colors.border, 
+              styles.input,
+              {
+                backgroundColor: colors.cardBackground,
+                color: colors.text,
+                borderColor: isDateError ? "#A4161A" : colors.border,
                 borderRadius: borderRadius.md,
                 paddingHorizontal: spacing.md,
-                fontSize: fontSize 
+                fontSize: fontSize
               },
               isDateError && styles.inputErrorBackground
             ]}
           />
         </View>
 
-        <View style={[styles.field, { gap: spacing.xs }]}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Horário (Opcional)</Text>
-          <TextInput
-            value={time}
-            onChangeText={handleTimeChange}
-            placeholder="HH:MM"
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-            maxLength={5}
+        {!isBasicMode && (
+          <View
             style={[
-              styles.input, 
-              { 
-                backgroundColor: colors.cardBackground, 
-                color: colors.text, 
-                borderColor: colors.border, 
-                borderRadius: borderRadius.md,
-                paddingHorizontal: spacing.md,
-                fontSize: fontSize 
-              }
+              styles.field,
+              { gap: spacing.xs },
             ]}
-          />
-        </View>
+          >
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: colors.text,
+                  fontSize,
+                },
+              ]}
+            >
+              Horário (Opcional)
+            </Text>
 
-        <View style={[styles.field, { gap: spacing.xs }]}>
-          <Text style={[styles.label, { color: colors.text, fontSize: fontSize }]}>Categoria</Text>
-          <View style={[styles.categories, { gap: spacing.sm }]}>
-            {categories.map((cat) => (
-              <Pressable
-                key={cat.value}
-                onPress={() => setCategory(cat.value)}
-                style={[
-                  styles.categoryButton,
-                  { 
-                    borderColor: colors.primary, 
-                    borderRadius: borderRadius.md,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm
-                  },
-                  category === cat.value && { backgroundColor: colors.primary },
-                ]}
-              >
-                <Text style={[styles.categoryText, { color: colors.primary, fontSize: fontSize * 0.9 }, category === cat.value && { color: "#FFFFFF" }]}>
-                  {cat.label}
-                </Text>
-              </Pressable>
-            ))}
+            <TextInput
+              value={time}
+              onChangeText={handleTimeChange}
+              placeholder="HH:MM"
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+              maxLength={5}
+              style={[
+                styles.input,
+                {
+                  backgroundColor:
+                    colors.cardBackground,
+                  color: colors.text,
+                  borderColor: colors.border,
+                  borderRadius:
+                    borderRadius.md,
+                  paddingHorizontal:
+                    spacing.md,
+                  fontSize,
+                },
+              ]}
+            />
           </View>
-        </View>
+        )}
+
+        {!isBasicMode && (
+          <View
+            style={[
+              styles.field,
+              { gap: spacing.xs },
+            ]}
+          >
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: colors.text,
+                  fontSize,
+                },
+              ]}
+            >
+              Categoria
+            </Text>
+
+            <View
+              style={[
+                styles.categories,
+                { gap: spacing.sm },
+              ]}
+            >
+              {categories.map((cat) => (
+                <Pressable
+                  key={cat.value}
+                  onPress={() =>
+                    setCategory(cat.value)
+                  }
+                  style={[
+                    styles.categoryButton,
+                    {
+                      borderColor:
+                        colors.primary,
+                      borderRadius:
+                        borderRadius.md,
+                      paddingHorizontal:
+                        spacing.md,
+                      paddingVertical:
+                        spacing.sm,
+                    },
+                    category === cat.value && {
+                      backgroundColor:
+                        colors.primary,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      {
+                        color: colors.primary,
+                        fontSize:
+                          fontSize * 0.9,
+                      },
+                      category ===
+                      cat.value && {
+                        color: "#FFFFFF",
+                      },
+                    ]}
+                  >
+                    {cat.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
 
         <Pressable
           onPress={handleSave}
           disabled={loading}
           style={[
-            styles.saveButton, 
-            { 
+            styles.saveButton,
+            {
               backgroundColor: colors.primary,
               borderRadius: borderRadius.lg,
               marginTop: spacing.sm
@@ -330,11 +458,11 @@ export default function NewActivityScreen() {
           onRequestClose={handleModalClose}
         >
           <View style={[styles.modalOverlay, { padding: spacing.lg }]}>
-            <View 
+            <View
               style={[
-                styles.modalContent, 
-                { 
-                  backgroundColor: colors.cardBackground, 
+                styles.modalContent,
+                {
+                  backgroundColor: colors.cardBackground,
                   borderColor: colors.border,
                   borderRadius: borderRadius.lg,
                   padding: spacing.lg,
@@ -343,10 +471,10 @@ export default function NewActivityScreen() {
               ]}
             >
               <View style={[styles.modalHeader, { gap: spacing.sm }]}>
-                <MaterialCommunityIcons 
-                  name={isSuccessModal ? "check-circle-outline" : "alert-circle-outline"} 
-                  size={fontSize * 2.2} 
-                  color={isSuccessModal ? "#18794E" : "#A4161A"} 
+                <MaterialCommunityIcons
+                  name={isSuccessModal ? "check-circle-outline" : "alert-circle-outline"}
+                  size={fontSize * 2.2}
+                  color={isSuccessModal ? "#18794E" : "#A4161A"}
                 />
                 <Text style={[styles.modalTitle, { color: colors.text, fontSize: fontSize * 1.3 }]}>
                   {isSuccessModal ? "Sucesso" : "Atenção"}
@@ -359,8 +487,8 @@ export default function NewActivityScreen() {
 
               <Pressable
                 style={[
-                  styles.modalButton, 
-                  { 
+                  styles.modalButton,
+                  {
                     backgroundColor: colors.primary,
                     borderRadius: borderRadius.md,
                     marginTop: spacing.xs
@@ -382,51 +510,51 @@ export default function NewActivityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    maxWidth: 600, 
-    alignSelf: 'center', 
+  container: {
+    maxWidth: 600,
+    alignSelf: 'center',
     width: '100%',
     flexGrow: 1,
   },
-  title: { 
-    fontFamily: 'Montserrat_700Bold', 
-    textAlign: "center", 
-    marginBottom: 5, 
+  title: {
+    fontFamily: 'Montserrat_700Bold',
+    textAlign: "center",
+    marginBottom: 5,
   },
   field: {},
-  label: { 
-    fontFamily: 'Montserrat_700Bold', 
+  label: {
+    fontFamily: 'Montserrat_700Bold',
   },
-  input: { 
-    borderWidth: 2, 
+  input: {
+    borderWidth: 2,
     minHeight: 52,
     fontFamily: 'Montserrat_400Regular',
   },
-  inputErrorBackground: { 
-    backgroundColor: '#FDF2F2' 
-  }, 
-  textArea: { 
-    minHeight: 90, 
-    textAlignVertical: 'top' 
+  inputErrorBackground: {
+    backgroundColor: '#FDF2F2'
   },
-  categories: { 
-    flexDirection: "row", 
-    flexWrap: "wrap", 
+  textArea: {
+    minHeight: 90,
+    textAlignVertical: 'top'
   },
-  categoryButton: { 
-    borderWidth: 2, 
+  categories: {
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
-  categoryText: { 
-    fontFamily: 'Montserrat_700Bold', 
+  categoryButton: {
+    borderWidth: 2,
   },
-  saveButton: { 
-    minHeight: 56, 
-    alignItems: "center", 
-    justifyContent: "center", 
+  categoryText: {
+    fontFamily: 'Montserrat_700Bold',
+  },
+  saveButton: {
+    minHeight: 56,
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 3,
   },
-  saveButtonText: { 
-    fontFamily: 'Montserrat_700Bold', 
+  saveButtonText: {
+    fontFamily: 'Montserrat_700Bold',
   },
   modalOverlay: {
     flex: 1,
@@ -462,5 +590,19 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     fontFamily: 'Montserrat_700Bold',
+  },
+
+  basicModeMessage: {
+    width: "100%",
+    borderWidth: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
+  basicModeMessageText: {
+    flex: 1,
+    fontFamily: "Montserrat_400Regular",
+    lineHeight: 24,
   },
 });
