@@ -15,7 +15,7 @@ function RootLayoutNav() {
         },
         headerTintColor: colors.text,
         headerTitleStyle: {
-          fontSize: fontSize + 2, 
+          fontSize: fontSize + 2,
           fontWeight: "bold",
         },
       }}
@@ -25,6 +25,7 @@ function RootLayoutNav() {
       <Stack.Screen name="atividades/index" options={{ title: "Minhas atividades" }} />
       <Stack.Screen name="atividades/nova" options={{ title: "Nova atividade" }} />
       <Stack.Screen name="atividades/[id]" options={{ title: "Detalhes da atividade" }} />
+      <Stack.Screen name="atividades/editar/[id]" options={{ title: "Editar atividade" }} />
       <Stack.Screen name="historico" options={{ title: "Histórico" }} />
       <Stack.Screen name="configuracoes" options={{ title: "Acessibilidade" }} />
       <Stack.Screen name="perfil" options={{ title: "Meu perfil" }} />
