@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -66,9 +66,11 @@ export default function ActivityDetailsScreen() {
     }
   }, [activityId]);
 
-  useEffect(() => {
-    void loadActivity();
-  }, [loadActivity]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadActivity();
+    }, [loadActivity]),
+  );
 
   async function handleComplete() {
     if (!activity || processing) return;
@@ -137,11 +139,11 @@ export default function ActivityDetailsScreen() {
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]}>
-      <View 
+      <View
         style={[
-          styles.card, 
-          { 
-            backgroundColor: colors.cardBackground, 
+          styles.card,
+          {
+            backgroundColor: colors.cardBackground,
             borderColor: colors.border,
             borderRadius: borderRadius.lg,
             padding: spacing.lg,
@@ -150,11 +152,11 @@ export default function ActivityDetailsScreen() {
         ]}
       >
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize * 1.5 }]}>{activity.title}</Text>
-        
+
         <Text style={[styles.label, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
           Categoria: <Text style={{ fontFamily: 'Montserrat_700Bold' }}>{categoryLabels[activity.category]}</Text>
         </Text>
-        
+
         <Text style={[styles.label, { color: colors.textSecondary || colors.text, fontSize: fontSize * 0.9 }]}>
           Data: <Text style={{ fontFamily: 'Montserrat_700Bold' }}>{activity.date} {activity.time ? `às ${activity.time}` : ""}</Text>
         </Text>
@@ -169,27 +171,85 @@ export default function ActivityDetailsScreen() {
       </View>
 
       {activity.status === "pendente" && (
-        <Pressable 
-          onPress={handleComplete} 
-          style={[
-            styles.completeButton, 
-            { 
-              borderRadius: borderRadius.md, 
-              minHeight: 56,
-              marginTop: spacing.xs
+        <>
+          <Pressable
+            onPress={handleComplete}
+            disabled={processing}
+            style={[
+              styles.completeButton,
+              {
+                borderRadius:
+                  borderRadius.md,
+                minHeight: 56,
+                marginTop: spacing.xs,
+                opacity: processing
+                  ? 0.7
+                  : 1,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                {
+                  fontSize,
+                },
+              ]}
+            >
+              {processing
+                ? "Processando..."
+                : "Concluir atividade"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname:
+                  "/atividades/editar/[id]",
+                params: {
+                  id: activity.id,
+                },
+              })
             }
-          ]}
-        >
-          <Text style={[styles.buttonText, { fontSize: fontSize }]}>Concluir Atividade</Text>
-        </Pressable>
+            disabled={processing}
+            style={[
+              styles.editButton,
+              {
+                borderRadius:
+                  borderRadius.md,
+                minHeight: 56,
+                backgroundColor:
+                  colors.cardBackground,
+                borderColor:
+                  colors.primary,
+                opacity: processing
+                  ? 0.7
+                  : 1,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.editButtonText,
+                {
+                  color: colors.primary,
+                  fontSize,
+                },
+              ]}
+            >
+              Editar atividade
+            </Text>
+          </Pressable>
+        </>
       )}
 
-      <Pressable 
-        onPress={requestDelete} 
+      <Pressable
+        onPress={requestDelete}
         style={[
-          styles.deleteButton, 
-          { 
-            borderRadius: borderRadius.md, 
+          styles.deleteButton,
+          {
+            borderRadius: borderRadius.md,
             minHeight: 56,
             backgroundColor: colors.cardBackground,
             borderColor: "#A4161A"
@@ -203,61 +263,71 @@ export default function ActivityDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    maxWidth: 600, 
-    alignSelf: 'center', 
-    width: '100%', 
-    flexGrow: 1 
+  container: {
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+    flexGrow: 1
   },
-  centerContainer: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center", 
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  card: { 
-    borderWidth: 1.5, 
+  card: {
+    borderWidth: 1.5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  title: { 
-    fontFamily: 'Montserrat_700Bold', 
+  title: {
+    fontFamily: 'Montserrat_700Bold',
   },
-  label: { 
+  label: {
     fontFamily: 'Montserrat_400Regular',
-    opacity: 0.8, 
+    opacity: 0.8,
   },
-  description: { 
+  description: {
     fontFamily: 'Montserrat_400Regular',
   },
-  status: { 
-    fontFamily: 'Montserrat_700Bold', 
+  status: {
+    fontFamily: 'Montserrat_700Bold',
   },
-  completeButton: { 
-    alignItems: "center", 
-    justifyContent: "center", 
+  completeButton: {
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#18794E",
     elevation: 2,
   },
-  deleteButton: { 
-    alignItems: "center", 
-    justifyContent: "center", 
-    borderWidth: 2, 
+  deleteButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
     elevation: 2,
   },
-  buttonText: { 
+  buttonText: {
     fontFamily: 'Montserrat_700Bold',
-    color: "#FFFFFF", 
+    color: "#FFFFFF",
   },
-  deleteButtonText: { 
+  deleteButtonText: {
     fontFamily: 'Montserrat_700Bold',
-    color: "#A4161A", 
+    color: "#A4161A",
   },
-  errorText: { 
+  errorText: {
     fontFamily: 'Montserrat_700Bold',
-    color: "#A4161A", 
+    color: "#A4161A",
     textAlign: "center",
-  }
+  },
+  editButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    elevation: 2,
+  },
+
+  editButtonText: {
+    fontFamily: "Montserrat_700Bold",
+  },
 });
