@@ -8,6 +8,7 @@ export interface AccessibilitySettings {
   simplifiedMode: boolean;
   reinforcedFeedback: boolean;
   confirmCriticalActions: boolean;
+  interfaceMode: InterfaceMode;
 }
 
 export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
@@ -17,4 +18,10 @@ export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
   simplifiedMode: false,
   reinforcedFeedback: true,
   confirmCriticalActions: true,
+  interfaceMode: "basico",
 };
+
+export type InterfaceMode =
+  | "basico"
+  | "avancado";
+
