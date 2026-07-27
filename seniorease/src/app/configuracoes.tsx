@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
 } from "react-native";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -69,15 +70,17 @@ export default function ConfigScreen() {
     settings.interfaceMode === "avancado";
 
   return (
-    <View
-      style={[
+    <ScrollView
+      contentContainerStyle={[
         styles.container,
         {
           backgroundColor:
             colors.background,
           padding: spacing.lg,
+          paddingBottom: spacing.xl * 2,
         },
       ]}
+      showsVerticalScrollIndicator={false}
     >
       <Text
         style={[
@@ -434,14 +437,13 @@ export default function ConfigScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
+    flexGrow: 1,
     maxWidth: 600,
     alignSelf: "center",
     width: "100%",

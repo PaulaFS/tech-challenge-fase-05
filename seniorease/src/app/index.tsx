@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import {
   Animated,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -144,6 +145,70 @@ function HoverButton({
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+    maxWidth: 600,
+    alignSelf: "center",
+    width: "100%",
+    paddingTop: 20,
+    paddingBottom: 40,
+    minHeight: "100%",
+  },
+
+  title: {
+    fontFamily:
+      "Montserrat_700Bold",
+    textAlign: "center",
+  },
+
+  subtitle: {
+    fontFamily:
+      "Montserrat_400Regular",
+    textAlign: "center",
+  },
+
+  animatedButtonContainer: {
+    width: "100%",
+  },
+
+  button: {
+    flexDirection: "row",
+    minHeight: 64,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  buttonText: {
+    fontFamily:
+      "Montserrat_700Bold",
+    textAlign: "center",
+  },
+
+  basicModeMessage: {
+    width: "100%",
+    borderWidth: 1.5,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  basicModeMessageText: {
+    flex: 1,
+    fontFamily:
+      "Montserrat_400Regular",
+    lineHeight: 22,
+  },
+});
+
 export default function HomeScreen() {
   const {
     fontSize,
@@ -166,8 +231,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <View
-      style={[
+    <ScrollView
+      contentContainerStyle={[
         styles.container,
         {
           backgroundColor:
@@ -354,67 +419,6 @@ export default function HomeScreen() {
         borderRadius={borderRadius}
         spacing={spacing}
       />
-    </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    maxWidth: 600,
-    alignSelf: "center",
-    width: "100%",
-  },
-
-  title: {
-    fontFamily:
-      "Montserrat_700Bold",
-    textAlign: "center",
-  },
-
-  subtitle: {
-    fontFamily:
-      "Montserrat_400Regular",
-    textAlign: "center",
-  },
-
-  animatedButtonContainer: {
-    width: "100%",
-  },
-
-  button: {
-    flexDirection: "row",
-    minHeight: 64,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  buttonText: {
-    fontFamily:
-      "Montserrat_700Bold",
-    textAlign: "center",
-  },
-
-  basicModeMessage: {
-    width: "100%",
-    borderWidth: 1.5,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  basicModeMessageText: {
-    flex: 1,
-    fontFamily:
-      "Montserrat_400Regular",
-    lineHeight: 22,
-  },
-});

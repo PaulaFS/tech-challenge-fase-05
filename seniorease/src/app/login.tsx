@@ -62,7 +62,7 @@ export default function LoginScreen() {
 
   return (
     <ScrollView 
-      contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md }]} 
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background, padding: spacing.lg, paddingBottom: spacing.xl * 2, gap: spacing.md }]} 
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.header, { marginBottom: spacing.xl }]}>
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
-    justifyContent: "center",
   },
   header: {
     alignItems: "center",
